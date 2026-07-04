@@ -35,3 +35,15 @@ CARE_RULES = {
         "severity": "unknown",
     },
     }
+
+def get_care_suggestion(plant_state: str) -> dict:
+    """
+    Retrieve care suggestion based on the plant state.
+
+    Args:
+        plant_state (str): The state of the plant.
+
+    Returns:
+        dict: A dictionary containing the condition, suggestion, and severity.
+    """
+    return CARE_RULES.get(plant_state, CARE_RULES["uncertain"])
