@@ -19,4 +19,4 @@ app.include_router(prediction_router)
 
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
-    # cd cd C:\Users\{your user}\MimisGarden\backend (windows)
+    # cd cd C:\Users\{your user}\MimisGarden\backend\app (windows)

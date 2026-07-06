@@ -3,7 +3,7 @@ from uuid import uuid4
 # used to handle file uploads in the API endpoints
 from fastapi import UploadFile
 #import functions for model predictions, such as how to apply confidence level and care suggestions and model inference, and image services
-from app.core.care_suggestions import get_care_suggestions  
+from app.core.care_suggestions import get_care_suggestion
 from app.core.confidence_rules import apply_confidence_rules
 from app.ml.inference import run_inference
 from app.services.image_storage_service import save_uploaded_image
