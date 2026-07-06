@@ -1,4 +1,4 @@
-def apply_confidence_rules(predicted_label: str, confidence: str, confidence: float) -> tuple[str, bool]:
+def apply_confidence_rules(predicted_label: str, confidence: float) -> tuple[str, bool]:
     
     if confidence < 0.50:
         return "uncertain", True

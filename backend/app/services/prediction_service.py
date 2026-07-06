@@ -24,7 +24,7 @@ async def create_prediction(file: UploadFile) -> dict:
         confidence=raw_prediction["confidence"],
     )
 
-    care_result = get_care_suggestions(plant_state)
+    care_result = get_care_suggestion(plant_state)
     ## returns JSON response with prediction details, including a unique prediction ID, plant state, possible condition, confidence level, severity, care suggestion, model version, and whether the prediction needs review.
     return {
          "prediction_id": f"pred_{uuid4().hex}",
