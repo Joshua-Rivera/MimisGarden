@@ -3,7 +3,7 @@ from fastapi import FastAPI
 #check backend is running well and posting
 from app.api.v1.routes_health import router as health_router
 #routes images for prediction
-from app.api.v1.routes_prediction import router as prediction_router
+from app.api.v1.routes_predictions import router as prediction_router
 
 #create FastAPI instance
 
@@ -15,3 +15,8 @@ app = FastAPI(
 #connect health state to app and connect predictions to app
 app.include_router(health_router)
 app.include_router(prediction_router)
+
+
+# use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
+# use the following command to get into the correct directory:
+    # cd cd C:\Users\{your user}\MimisGarden\backend (windows)
