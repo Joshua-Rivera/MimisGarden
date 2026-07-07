@@ -4,6 +4,11 @@ from fastapi import FastAPI
 from app.api.v1.routes_health import router as health_router
 #routes images for prediction
 from app.api.v1.routes_predictions import router as prediction_router
+# import Base and engine from the session module in the db package
+from app.db.session import Base, engine
+# import models from the models module in the db package
+from app.db import models
+
 
 #create FastAPI instance
 
