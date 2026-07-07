@@ -10,6 +10,7 @@ from app.db.session import Base, engine
 from app.db import models
 
 
+Base.metadata.create_all(bind=engine)  # Create the database tables if they don't exist
 #create FastAPI instance
 
 app = FastAPI(
