@@ -2,6 +2,8 @@
 from uuid import uuid4
 # used to handle file uploads in the API endpoints
 from fastapi import UploadFile
+from backend.app import db
+from sqlalchemy.orm import Session
 #import functions for model predictions, such as how to apply confidence level and care suggestions and model inference, and image services
 from app.core.care_suggestions import get_care_suggestion
 from app.core.confidence_rules import apply_confidence_rules
@@ -25,9 +27,11 @@ async def create_prediction(file: UploadFile) -> dict:
     )
 
     care_result = get_care_suggestion(plant_state)
-    ## returns JSON response with prediction details, including a unique prediction ID, plant state, possible condition, confidence level, severity, care suggestion, model version, and whether the prediction needs review.
-    return {
-         "prediction_id": f"pred_{uuid4().hex}",
+    # generates unique id per prediction
+    prediction_id = f"pred_{uuid4().hex}"
+    #formats responses to include the following in a json format
+    prediction_response = {
+        "prediction_id": prediction_id,
         "plant_state": plant_state,
         "possible_condition": care_result["condition"],
         "confidence": raw_prediction["confidence"],
@@ -36,3 +40,20 @@ async def create_prediction(file: UploadFile) -> dict:
         "model_version": raw_prediction["model_version"],
         "needs_review": needs_review,
     }
+    #logs the json response to the database for future reference
+    prediction_log = PredictionLog(
+        prediction_id=prediction_id,
+        image_path=image_path,
+        plant_state=plant_state,
+        possible_condition=care_result["condition"],
+        confidence=raw_prediction["confidence"],
+        severity=care_result["severity"],
+        suggestion=care_result["suggestion"],
+        model_version=raw_prediction["model_version"],
+        needs_review=needs_review,
+    )
+
+    db.add(prediction_log)
+    db.commit()
+
+    return prediction_response
