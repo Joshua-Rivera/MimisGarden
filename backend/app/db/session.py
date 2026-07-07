@@ -26,3 +26,8 @@ def get_db():
         yield db  # Yield the session to the caller
     finally:
         db.close()  # Ensure the session is closed after use
+
+        """
+        This file essentially just creates a connection to a db, uses SQLite, 
+        and gives routes to a database session when it is needed, and close after request is completed.
+        """
