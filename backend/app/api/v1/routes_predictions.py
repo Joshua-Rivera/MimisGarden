@@ -1,5 +1,7 @@
 
 from fastapi import APIRouter, File, UploadFile
+
+from sqlalchemy.orm import Session
 # import prediction responses and created predictions for endpoint functionality
 from app.schemas.prediction_schema import PredictionResponse
 from app.services.prediction_service import create_prediction
