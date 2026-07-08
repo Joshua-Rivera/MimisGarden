@@ -8,7 +8,9 @@ from app.api.v1.routes_predictions import router as prediction_router
 from app.db.session import Base, engine
 # import models from the models module in the db package
 from app.db import models
-
+# import models router from the routes_model module in the api.v1 package
+from app.api.v1.routes_model import router as models_router
+# import models router from the routes_model module in the api.v1 package
 from app.api.v1.routes_reviews import router as review_router
 
 
@@ -24,6 +26,7 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(prediction_router)
 app.include_router(review_router)
+app.include_router(models_router)
 
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
