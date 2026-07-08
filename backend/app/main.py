@@ -9,6 +9,8 @@ from app.db.session import Base, engine
 # import models from the models module in the db package
 from app.db import models
 
+from app.api.v1.routes_reviews import router as review_router
+
 
 Base.metadata.create_all(bind=engine)  # Create the database tables if they don't exist
 #create FastAPI instance
@@ -21,7 +23,7 @@ app = FastAPI(
 #connect health state to app and connect predictions to app
 app.include_router(health_router)
 app.include_router(prediction_router)
-
+app.include_router(review_router)
 
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
