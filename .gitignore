@@ -1,5 +1,6 @@
 #ignore local environment
 *backend/.backend
+*backend/.venv
 #ignore compiled python files
 __pycache__/
 *.pyc
