@@ -3,3 +3,6 @@ uvicorn
 python-multipart
 pillow
 pydantic
+sqlalchemy
+openai
+python-dotenv
