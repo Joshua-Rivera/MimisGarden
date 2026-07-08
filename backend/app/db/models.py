@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Text
 # SQLAlchemy imports for defining database models
-from sqlalchemy import Boolean, Column, DateTime, Float, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 from app.db.session import Base  # Import the Base class from the session module
 
@@ -41,3 +41,22 @@ class Review(Base):
     review_notes = Column(Text, nullable=True)
     reviewed_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Timestamp for when the review was submitted
     prediction = relationship("PredictionLog")
+
+
+##MACHINE LEARNING !!!! RAAHHH
+
+class ModelMetadata(Base):
+    """
+    Database model for storing metadata about the machine learning models used in the plant disease detection API.
+    This model helps track different versions of the models and their associated information.
+    """
+    __tablename__ = "model_metadata"  # Name of the table in the database
+
+    model_id = Column(String, primary_key=True, index=True)
+    model_name = Column(String, nullable=False)
+    model_version = Column(String, nullable=False, unique=True, index=True)
+    accuracy = Column(Float, nullable=True)
+    f1_score = Column(Float, nullable=True)
+    status = Column(String, nullable=False, default="experimental")    # e.g., "active", "deprecated"
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Timestamp for when the model metadata was created
