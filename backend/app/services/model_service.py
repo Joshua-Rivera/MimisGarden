@@ -55,7 +55,7 @@ def get_current_model(db:Session) -> ModelMetadata:
     # Query the database for the current active model
     current_model = (
         db.query(ModelMetadata)
-        .filter_by(ModelMetadata.status=="active")
+        .filter(ModelMetadata.status == "active")
         .first())
     
     if current_model is not  None:

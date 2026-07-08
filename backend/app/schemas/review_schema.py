@@ -1,6 +1,6 @@
 from datetime import datetime #tells the time duh
 # Pydantic schema for review data class
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 
 class ReviewCreate(BaseModel):
     """

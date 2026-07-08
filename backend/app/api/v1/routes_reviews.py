@@ -16,7 +16,7 @@ def list_review_queue(db: Session = Depends(get_db)): # Define the function to h
     """
     return get_review_queue(db) # Call the service function to get the review queue and return the results
 
-@router.post("/reviews{prediction_id}", response_model=ReviewResponse) # Define a POST endpoint for submitting a review
+@router.post("/reviews/{prediction_id}", response_model=ReviewResponse) # Define a POST endpoint for submitting a review
 def submit_review(prediction_id: str, review_data: ReviewCreate, db: Session = Depends(get_db)): # Define the function to handle the POST request, with a database session dependency
     """
     Submit a review for a specific prediction.

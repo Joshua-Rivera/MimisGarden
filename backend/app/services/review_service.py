@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4 #assign speficic unique id to request
 
 from fastapi import HTTPException #http error exception import
@@ -58,5 +59,4 @@ def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) ->
         prediction.needs_review = False  # Mark the prediction as reviewed
         db.commit()  # Commit the change to the database
         db.refresh(prediction)  # Refresh to get the updated state from the database
-        return prediction
     return new_review

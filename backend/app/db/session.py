@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base  
 
 
-DATABASE_URL = "sqllite:///./storage/planthealth.db" # plant health image db URL
+DATABASE_URL = "sqlite:///./storage/planthealth.db" # plant health image db URL
 
 engine = create_engine(
     DATABASE_URL,  # URL 

@@ -1,6 +1,5 @@
 # current date and time
 from datetime import datetime
-from typing import Text
 # SQLAlchemy imports for defining database models
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
@@ -34,7 +33,7 @@ class Review(Base):
 
     review_id = Column(String, primary_key=True, index=True)
     prediction_id = Column(String, 
-                           ForeginKey("prediction_logs.prediction_id"),
+                           ForeignKey("prediction_logs.prediction_id"),
                            nullable = False,
                            index = False) # Foreign key to PredictionLog (not enforced here)
     correct_label = Column(String, nullable=False)

@@ -2,15 +2,15 @@
 from uuid import uuid4
 # used to handle file uploads in the API endpoints
 from fastapi import UploadFile
-from backend.app import db
 from sqlalchemy.orm import Session
+from app.db.models import PredictionLog
 #import functions for model predictions, such as how to apply confidence level and care suggestions and model inference, and image services
 from app.core.care_suggestions import get_care_suggestion
 from app.core.confidence_rules import apply_confidence_rules
 from app.ml.inference import run_inference
 from app.services.image_storage_service import save_uploaded_image
 
-async def create_prediction(file: UploadFile) -> dict:
+async def create_prediction(file: UploadFile, db: Session) -> dict:
     """
     Create a prediction for the uploaded image.
 
