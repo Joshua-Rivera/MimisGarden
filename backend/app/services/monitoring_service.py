@@ -28,14 +28,14 @@ def get_summary_metrics(db: Session):
         ),
     }
 
-def get_prediction_metrics(db: Session):
+def get_confidence_metrics(db: Session):
     """
-    Retrieve metrics for a specific prediction based on its ID.
+    Retrieve confidence metrics for predictions.
 
     Args:
         db (Session): The database session.
-        prediction_id (str): The ID of the prediction to retrieve metrics for.
-    """
+    Returns:
+        dict: A dictionary containing average, highest, and lowest confidence metrics."""
 
     average = (
         db.query(func.avg(PredictionLog.confidence))
