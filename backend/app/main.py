@@ -28,7 +28,7 @@ app.include_router(health_router)
 app.include_router(prediction_router)
 app.include_router(review_router)
 app.include_router(models_router)
-app.include_router
+app.include_router(metrics_router)
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
     # cd cd C:\Users\{your user}\MimisGarden\backend\app (windows)
