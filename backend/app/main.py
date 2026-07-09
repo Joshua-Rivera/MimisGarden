@@ -12,7 +12,8 @@ from app.db import models
 from app.api.v1.routes_model import router as models_router
 # import models router from the routes_model module in the api.v1 package
 from app.api.v1.routes_reviews import router as review_router
-
+# import models router from the routes_model module in the api.v1 package
+from app.api.v1.routes_metrics import router as metrics_router
 
 Base.metadata.create_all(bind=engine)  # Create the database tables if they don't exist
 #create FastAPI instance
@@ -22,12 +23,12 @@ app = FastAPI(
     description = "This is a plant disease detection API that uses a deep learning model to predict the disease of a plant based on an image of its leaves.",
     version = "1.0.0",
     )
-#connect health state to app and connect predictions to app
+#connect routers to app
 app.include_router(health_router)
 app.include_router(prediction_router)
 app.include_router(review_router)
 app.include_router(models_router)
-
+app.include_router
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
     # cd cd C:\Users\{your user}\MimisGarden\backend\app (windows)
