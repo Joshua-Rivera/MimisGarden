@@ -497,3 +497,362 @@ html {
         flex-direction: column;
     }
 }
+
+/*
+ * Falling-leaf framework:
+ *
+ * 1. Position a decorative container absolutely inside .tree-area.
+ * 2. Give each leaf position, size, color, and an animation delay.
+ * 3. Animate transform with translate and rotate inside @keyframes.
+ * 4. Add pointer-events: none and a prefers-reduced-motion fallback.
+ *
+ * The leaf selectors below are currently dormant because Hero.jsx does not
+ * render any matching leaf elements. They can be used as reference or removed
+ * when you choose a final implementation.
+ */
+
+/* Covers the tree area without blocking the page controls */
+.tree-area {
+    position: relative;
+    width: min(100%, 600px);
+    min-height: 580px;
+    display: grid;
+    place-items: center;
+}
+
+.tree-image {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: min(100%, 500px);
+    height: auto;
+}
+
+.falling-leaves {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: min(100%, 560px);
+    z-index: 3;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+/* Draws the tapered body of each leaf */
+.falling-leaf {
+    position: absolute;
+    top: 105px;
+    left: 85%;
+    display: block;
+    width: 30px;
+    height: 23px;
+    border: 1px solid rgba(70, 68, 34, 0.48);
+    border-radius: 5% 40% 70%;
+    background: linear-gradient(to bottom right, #9c8c43, #596139);
+    box-shadow: inset 0 0 1px rgba(34, 34, 34, 0.7);
+    opacity: 0.72;
+    transform-origin: center;
+    filter: drop-shadow(0 5px 5px rgba(75, 41, 15, 0.18));
+    animation: falling-leaf-one 8s ease-in-out infinite;
+}
+
+/* Draws the small stem */
+.falling-leaf::before {
+    content: "";
+    position: absolute;
+    top: 17px;
+    right: 1px;
+    width: 7px;
+    height: 5px;
+    border: 1px solid rgba(52, 63, 25, 0.55);
+    border-left: 0;
+    border-radius: 0 45% 45% 0;
+    background: linear-gradient(to right, #6b5229, #49391f);
+    transform: rotate(49deg);
+}
+
+/* Draws the center vein */
+.falling-leaf::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 12px;
+    width: 2px;
+    height: 17px;
+    border-radius: 50%;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.22), transparent);
+    transform: rotate(125deg);
+}
+
+/* Mixes three paths so the leaves do not move as one group */
+.falling-leaf:nth-child(2n) {
+    animation-name: falling-leaf-two;
+}
+
+.falling-leaf:nth-child(3n) {
+    animation-name: falling-leaf-three;
+}
+
+/* Smaller leaves */
+.falling-leaf:nth-child(2n + 1) {
+    width: 16px;
+    height: 11px;
+}
+
+.falling-leaf:nth-child(2n + 1)::before {
+    top: 7px;
+    right: 0;
+    width: 4px;
+    height: 3px;
+}
+
+.falling-leaf:nth-child(2n + 1)::after {
+    top: 1px;
+    left: 5px;
+    width: 2px;
+    height: 6px;
+}
+
+/* Medium leaves */
+.falling-leaf:nth-child(3n + 2) {
+    width: 23px;
+    height: 17px;
+}
+
+.falling-leaf:nth-child(3n + 2)::before {
+    top: 12px;
+    right: 1px;
+    width: 4px;
+    height: 4px;
+}
+
+.falling-leaf:nth-child(3n + 2)::after {
+    top: 1px;
+    left: 8px;
+    width: 2px;
+    height: 10px;
+}
+
+/* Staggers positions, speeds, colors, and visibility */
+.falling-leaf:nth-child(1)  { left: 20%; top: 150px; animation-delay: -1.9s; }
+.falling-leaf:nth-child(2)  { left: 80%; top: 145px; animation-delay: -3.9s; }
+.falling-leaf:nth-child(3)  { left: 38%; top: 95px; animation-delay: -2.3s; }
+.falling-leaf:nth-child(4)  { left: 88%; top: 185px; animation-delay: -4.4s; }
+.falling-leaf:nth-child(5)  { left: 62%; top: 85px; animation-delay: -5s; }
+.falling-leaf:nth-child(6)  { left: 27%; top: 185px; animation-delay: -3.5s; }
+.falling-leaf:nth-child(7)  { left: 74%; top: 120px; animation-delay: -2.8s; }
+.falling-leaf:nth-child(8)  { left: 48%; top: 135px; animation-delay: -1.5s; }
+.falling-leaf:nth-child(9)  { left: 91%; top: 205px; animation-delay: -3.3s; }
+.falling-leaf:nth-child(10) { left: 33%; top: 120px; animation-delay: -2.5s; }
+.falling-leaf:nth-child(11) { left: 82%; top: 170px; animation-delay: -1.2s; }
+.falling-leaf:nth-child(12) { left: 55%; top: 95px; animation-delay: -4.1s; }
+
+.falling-leaf:nth-child(4n + 1) {
+    background: linear-gradient(to bottom right, #c5a04a, #877538);
+}
+
+.falling-leaf:nth-child(4n + 2) {
+    background: linear-gradient(to bottom right, #7f7a3d, #4f5930);
+}
+
+.falling-leaf:nth-child(4n + 3) {
+    background: linear-gradient(to bottom right, #aa9144, #666536);
+}
+
+.falling-leaf:nth-child(3n + 1) { opacity: 0; }
+.falling-leaf:nth-child(3n + 2) { opacity: 0; }
+.falling-leaf:nth-child(4n) { animation-duration: 10s; }
+.falling-leaf:nth-child(5n) { animation-duration: 11.5s; }
+
+/* Moves leaves down either side of the trunk while rotating */
+@keyframes falling-leaf-one {
+    0% {
+        transform: translate3d(0, -15px, 0) rotate(0deg);
+    }
+    45% {
+        transform: translate3d(-35px, 210px, 0) rotate(55deg);
+    }
+    100% {
+        transform: translate3d(-135px, 430px, 0) rotate(125deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling-leaf-two {
+    0% {
+        transform: translate3d(0, -15px, 0) rotate(90deg);
+    }
+    45% {
+        transform: translate3d(45px, 205px, 0) rotate(40deg);
+    }
+    100% {
+        transform: translate3d(135px, 425px, 0) rotate(-15deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling-leaf-three {
+    0% {
+        transform: translate3d(0, -15px, 0) rotate(-20deg);
+    }
+    30% {
+        transform: translate3d(45px, 135px, 0) rotate(-45deg);
+    }
+    65% {
+        transform: translate3d(-35px, 285px, 0) rotate(-65deg);
+    }
+    100% {
+        transform: translate3d(55px, 430px, 0) rotate(-105deg);
+        opacity: 0;
+    }
+}
+
+/* Falling-leaf implementation used by the #leaves markup in Hero.jsx */
+#leaves {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    width: min(100%, 560px);
+    height: 100%;
+    z-index: 3;
+    overflow: hidden;
+    text-align: right;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+#leaves i {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+    height: 150px;
+    border: 1px solid #333;
+    border-radius: 5% 40% 70%;
+    background: linear-gradient(to bottom right, #309900, #005600);
+    box-shadow: inset 0 0 1px #222;
+    z-index: 1;
+    transform: skew(20deg);
+    animation: falling 5s 0s infinite ease-in-out;
+}
+
+#leaves i:nth-of-type(2n) { animation-name: falling2; }
+#leaves i:nth-of-type(3n) { animation-name: falling3; }
+
+#leaves i::before {
+    position: absolute;
+    content: "";
+    top: 117px;
+    right: 9px;
+    width: 32px;
+    height: 27px;
+    border: 1px solid #222;
+    border-left: 0;
+    border-radius: 0 15% 15% 0;
+    background: linear-gradient(to right, rgb(0, 100, 0), #005600);
+    z-index: 1;
+    transform: rotate(49deg);
+}
+
+#leaves i::after {
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 85px;
+    display: block;
+    width: 10px;
+    height: 125px;
+    border-radius: 50%;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.15), transparent);
+    transform: rotate(125deg);
+}
+
+#leaves i:nth-of-type(n) { width: 30px; height: 23px; }
+#leaves i:nth-of-type(n)::before { top: 17px; right: 1px; width: 7px; height: 5px; }
+#leaves i:nth-of-type(n)::after { top: 0; left: 12px; width: 2px; height: 17px; }
+
+#leaves i:nth-of-type(2n + 1) { width: 16px; height: 11px; }
+#leaves i:nth-of-type(2n + 1)::before { top: 7px; right: 0; width: 4px; height: 3px; }
+#leaves i:nth-of-type(2n + 1)::after { top: 1px; left: 5px; width: 2px; height: 6px; }
+
+#leaves i:nth-of-type(3n + 2) { width: 23px; height: 17px; }
+#leaves i:nth-of-type(3n + 2)::before { top: 12px; right: 1px; width: 4px; height: 4px; }
+#leaves i:nth-of-type(3n + 2)::after { top: 1px; left: 8px; width: 2px; height: 10px; }
+
+#leaves i:nth-of-type(n) { animation-delay: 1.9s; }
+#leaves i:nth-of-type(2n) { animation-delay: 3.9s; }
+#leaves i:nth-of-type(3n) { animation-delay: 2.3s; }
+#leaves i:nth-of-type(4n) { animation-delay: 4.4s; }
+#leaves i:nth-of-type(5n) { animation-delay: 5s; }
+#leaves i:nth-of-type(6n) { animation-delay: 3.5s; }
+#leaves i:nth-of-type(7n) { animation-delay: 2.8s; }
+#leaves i:nth-of-type(8n) { animation-delay: 1.5s; }
+#leaves i:nth-of-type(9n) { animation-delay: 3.3s; }
+#leaves i:nth-of-type(10n) { animation-delay: 2.5s; }
+#leaves i:nth-of-type(11n) { animation-delay: 1.2s; }
+#leaves i:nth-of-type(12n) { animation-delay: 4.1s; }
+#leaves i:nth-of-type(13n) { animation-delay: 1s; }
+#leaves i:nth-of-type(14n) { animation-delay: 4.7s; }
+#leaves i:nth-of-type(15n) { animation-delay: 3s; }
+
+#leaves i:nth-of-type(n) {
+    opacity: 0.7;
+    background: linear-gradient(to bottom right, #309900, #005600);
+}
+
+#leaves i:nth-of-type(2n + 2) {
+    background: linear-gradient(to bottom right, #5e9900, #2b5600);
+}
+
+#leaves i:nth-of-type(4n + 1) {
+    background: linear-gradient(to bottom right, #999900, #564500);
+}
+
+#leaves i:nth-of-type(3n + 1) { opacity: 0.5; }
+#leaves i:nth-of-type(3n + 2) { opacity: 0.3; }
+
+@keyframes falling {
+    0% {
+        transform: translate3d(300px, 0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate3d(-350px, 700px, 0) rotate(90deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling3 {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(-20deg);
+    }
+    100% {
+        transform: translate3d(-230px, 640px, 0) rotate(-70deg);
+        opacity: 0;
+    }
+}
+
+@keyframes falling2 {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(90deg);
+    }
+    100% {
+        transform: translate3d(-400px, 680px, 0) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* Keeps the normal hero content above the leaves */
+.hero-text {
+    position: relative;
+    z-index: 2;
+}
+
+/* Respects accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+    .falling-leaf,
+    #leaves i {
+        animation: none;
+        display: none;
+    }
+}

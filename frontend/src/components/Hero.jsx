@@ -1,3 +1,5 @@
+import cleanTree from "../assets/cleantree.png";
+
 export default function Hero() {
     return (
         <section id="home" className="hero">
@@ -31,21 +33,20 @@ export default function Hero() {
 
             {/* This creates the tree area */}
             <div className="tree-area">
-                {/* This creates the circle path where the leaves move */}
-                <div className="leaf-orbit orbit-one">
-                    <img src="/assets/falling-leaf.png" alt="" className="orbit-leaf" />
-                </div>
+                {/*
+                  Falling-leaf framework:
 
-                <div className="leaf-orbit orbit-two">
-                    <img src="/assets/falling-leaf.png" alt="" className="orbit-leaf" />
-                </div>
+                  1. Add a decorative container here.
+                  2. Put one span inside it for every leaf you want to show.
+                  3. Give the container and spans class names.
+                  4. Style the leaf shape and add a falling @keyframes rule in styles.css.
 
-                <div className="leaf-orbit orbit-three">
-                    <img src="/assets/falling-leaf.png" alt="" className="orbit-leaf" />
-                </div>
+                  Keep aria-hidden="true" on the container because the leaves
+                  are visual decoration and should not be read by screen readers.
+                */}
 
                 {/* This shows the tree image */}
-                <img src="/assets/tree.png" alt="Mimi's Garden tree" className="tree-image" />
+                <img src={cleanTree} alt="Mimi's Garden tree" className="tree-image" />
             </div>
         </section>
     );
