@@ -1,7 +1,7 @@
 import ConfidenceBadge from "./ConfidenceBadge";
 import SuggestionCard from "./SuggestionCard";
 
-type Prediction = {
+export type Prediction = {
   prediction_id: string;
   plant_state: string;
   possible_condition: string;

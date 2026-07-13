@@ -1,3 +1,4 @@
+import ImageUpload from "./ImageUpload";
 const metrics = [
   {
     title: "Total Predictions",
@@ -21,7 +22,7 @@ const metrics = [
 export default function DashboardPreview() {
 
     return (
-        <section id="dashboard" className="dashboard-selection">
+        <section id="dashboard" className="dashboard-section">
             {/*This creates the dashbaord title*/}
             <div className="section-heading">
                 <p className="small-title">Dashboard</p>
@@ -41,12 +42,8 @@ export default function DashboardPreview() {
             ))}
             </div>
 
-            {/* This creates upload box preview*/}
-            <div id="analyze" className="upload-preview">
-                <h3>Analyze a Plant Image</h3>
-                <p>Upload a plant or leaf image to begin the prediction process.</p>
-                <button> Upload Plant Image </button>
-                </div>    
+            {/* This creates the image upload and prediction area */}
+            <ImageUpload />
         </section>
     )
 

@@ -1,19 +1,19 @@
-import {useState} from "react";
-import PredictionCard from "./PredictionCard.jsx";
+import { useState, type ChangeEvent } from "react";
+import PredictionCard, { type Prediction } from "./PredictionCard";
 
 export default function ImageUpload() {
     // stores image file the user selects
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     //stores image preview link
     const [previewUrl, setPreviewUrl] = useState("");
 
     //stores prediction result
-    const [prediction, setPrediction] = useState(null);
+    const [prediction, setPrediction] = useState<Prediction | null>(null);
 
     //runs when user chooses an image
-    function handleFileChange(event) {
-        const file = event.target.files[0];
+    function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
 
         if (!file){return;}
 
@@ -26,4 +26,58 @@ export default function ImageUpload() {
         //clears old prediction when new img is chosen
         setPrediction(null);
     }
+
+    //analyze button activate
+    function handleAnalyzeClick() {
+        if (!selectedFile){return;}
+
+        const fakePrediction = {
+            prediction_id: "pred_fake_001",
+            plant_state: "dry_wilting",
+            possible_condition: "possible_water_stress",
+            confidence: 0.82,
+            severity: "medium",
+            suggestion:
+            "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
+            model_version: "plant-health-v0-fake",
+            needs_review: false,
+        }
+        setPrediction(fakePrediction);
+    }
+    return (
+    <section id="analyze" className="image-upload-section">
+      {/* This creates the upload box */}
+      <div className="upload-panel">
+        <p className="small-title">Analyze</p>
+
+        <h2>Upload a plant image.</h2>
+
+        <p>
+          Choose a plant or leaf photo to test the prediction workflow.
+        </p>
+
+        {/* This creates the file picker */}
+        <input
+          type="file"
+          accept="image/png, image/jpeg, image/jpg, image/webp"
+          onChange={handleFileChange}
+        />
+
+        {/* This shows the image preview after the user chooses a file */}
+        {previewUrl && (
+          <div className="image-preview-box">
+            <img src={previewUrl} alt="Selected plant preview" />
+          </div>
+        )}
+
+        {/* This creates the analyze button */}
+        <button onClick={handleAnalyzeClick}>
+          Analyze Plant
+        </button>
+      </div>
+
+      {/* This shows the prediction after Analyze is clicked */}
+      <PredictionCard prediction={prediction} />
+    </section>
+  );
 }
