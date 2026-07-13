@@ -338,3 +338,162 @@ html {
         grid-template-columns: 1fr;
     }
 }
+
+/* Creates the image upload section */
+.image-upload-section {
+    margin-top: 32px;
+}
+
+/* Creates the main upload box */
+.upload-panel {
+    padding: 46px;
+    text-align: center;
+
+    background: rgba(255, 239, 219, 0.86);
+    border: 2px dashed #d4a779;
+    border-radius: 24px;
+}
+
+/* Styles the upload title */
+.upload-panel h2 {
+    margin: 0 0 12px;
+    font-family: Georgia, serif;
+    font-size: 42px;
+}
+
+/* Styles the upload paragraph */
+.upload-panel p {
+    color: #674328;
+}
+
+/* Styles the file input */
+.upload-panel input {
+    margin-top: 20px;
+}
+
+/* Creates the image preview box */
+.image-preview-box {
+    margin: 28px auto 0;
+    max-width: 420px;
+    padding: 14px;
+
+    background: var(--light-cream);
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(77, 45, 20, 0.12);
+}
+
+/* Styles the preview image */
+.image-preview-box img {
+    width: 100%;
+    display: block;
+    border-radius: 14px;
+}
+
+/* Styles the analyze button */
+.upload-panel button {
+    margin-top: 24px;
+    padding: 14px 28px;
+
+    color: white;
+    background: var(--orange);
+
+    border: none;
+    border-radius: 12px;
+
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Creates the prediction result card */
+.prediction-card {
+    margin-top: 28px;
+    padding: 34px;
+
+    background: rgba(255, 239, 219, 0.9);
+    border-radius: 24px;
+    box-shadow: 0 14px 30px rgba(77, 45, 20, 0.12);
+}
+
+/* Creates the top row of the prediction card */
+.prediction-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+/* Styles the prediction title */
+.prediction-header h3 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 42px;
+}
+
+/* Creates the prediction details area */
+.prediction-details {
+    margin-top: 24px;
+}
+
+/* Styles each detail line */
+.prediction-details p {
+    margin: 10px 0;
+    color: #674328;
+}
+
+/* Creates the confidence badge */
+.confidence-badge {
+    padding: 10px 14px;
+    border-radius: 999px;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Green badge for high confidence */
+.high-confidence {
+    color: white;
+    background: var(--green);
+}
+
+/* Orange badge for medium confidence */
+.medium-confidence {
+    color: white;
+    background: var(--orange);
+}
+
+/* Brown badge for low confidence */
+.low-confidence {
+    color: white;
+    background: var(--soft-brown);
+}
+
+/* Creates the suggestion card */
+.suggestion-card {
+    margin-top: 24px;
+    padding: 24px;
+
+    background: var(--light-cream);
+    border-left: 6px solid var(--orange);
+    border-radius: 18px;
+}
+
+/* Styles the suggestion title */
+.suggestion-card h4 {
+    margin: 0 0 14px;
+    font-family: Georgia, serif;
+    font-size: 28px;
+}
+
+/* Styles the suggestion text */
+.suggestion-card p {
+    color: #674328;
+    line-height: 1.5;
+}
+
+/* Makes prediction card stack better on small screens */
+@media (max-width: 700px) {
+    .prediction-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
