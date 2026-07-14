@@ -7,7 +7,7 @@ import {
 } from "react";
 import PredictionCard, { type Prediction } from "./PredictionCard";
 import useScrollReveal from "../hooks/useScrollReveal";
-
+import { createPrediction } from "../lib/api";
 const analysisWords = [
   "Watering",
   "Taking root",
@@ -26,6 +26,7 @@ export default function ImageUpload() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState("");
+  const [error, setError] = useState("");
   const [analysisWordIndex, setAnalysisWordIndex] = useState(0);
   useScrollReveal(uploadRef, prediction?.prediction_id ?? "");
 
@@ -47,24 +48,8 @@ export default function ImageUpload() {
       setAnalysisWordIndex((current) => (current + 1) % analysisWords.length);
     }, 720);
 
-    const resultTimer = window.setTimeout(() => {
-      setPrediction({
-        prediction_id: "pred_fake_001",
-        plant_state: "dry_wilting",
-        possible_condition: "possible_water_stress",
-        confidence: 0.82,
-        severity: "medium",
-        suggestion:
-          "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
-        model_version: "plant-health-v0-fake",
-        needs_review: false,
-      });
-      setIsAnalyzing(false);
-    }, 3600);
-
     return () => {
       window.clearInterval(wordTimer);
-      window.clearTimeout(resultTimer);
     };
   }, [isAnalyzing]);
 
@@ -78,6 +63,7 @@ export default function ImageUpload() {
     setPrediction(null);
     setIsAnalyzing(false);
     setFileError("");
+    setError("");
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -105,12 +91,22 @@ export default function ImageUpload() {
     if (file) selectFile(file);
   }
 
-  function handleAnalyzeClick() {
+  async function handleAnalyzeClick() {
     if (!selectedFile || isAnalyzing) return;
 
-    setPrediction(null);
-    setAnalysisWordIndex(0);
     setIsAnalyzing(true);
+    setPrediction(null);
+    setError("");
+
+    try {
+      const result = await createPrediction(selectedFile);
+      setPrediction(result);
+    } catch (requestError) {
+      setError("Prediction failed. Make sure the backend is running and try again.");
+      console.error(requestError);
+    } finally {
+      setIsAnalyzing(false);
+    }
   }
 
   return (
@@ -155,6 +151,12 @@ export default function ImageUpload() {
         >
           {isAnalyzing ? "Analyzing…" : "Analyze plant"}
         </button>
+
+        {error && (
+          <p className="error-message" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="analysis-output" aria-live="polite">
           {isAnalyzing ? (

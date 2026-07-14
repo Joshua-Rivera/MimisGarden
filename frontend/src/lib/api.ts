@@ -1,32 +1,33 @@
-// This is the backend URL
+// backend URL
 const API_BASE_URL = "http://127.0.0.1:8000";
-
-// This sends an image to the backend for prediction
+// main API path
+const API_V1 = `${API_BASE_URL}/api/v1`;
+// sends an image to the backend for processing
 export async function createPrediction(file: File) {
-  // This creates a form that can hold an image file
+  //  creates form that can hold an image file
   const formData = new FormData();
 
-  // This adds the selected image to the form
+  //  adds the selected image to the form
   formData.append("file", file);
 
-  // This sends the image to the backend
-  const response = await fetch(`${API_BASE_URL}/predict`, {
+  //  sends the image to the backend FstAPI
+  const response = await fetch(`${API_V1}/predict`, {
     method: "POST",
     body: formData,
   });
 
-  // This checks if the backend failed
+  // checks if the backend failed :(
   if (!response.ok) {
     throw new Error("Prediction failed");
   }
 
-  // This gives back the prediction result
+  // returns the prediction result
   return response.json();
 }
 
-// This gets the dashboard summary numbers
+//  gets the dashboard summary numbers
 export async function getSummaryMetrics() {
-  const response = await fetch(`${API_BASE_URL}/metrics/summary`);
+  const response = await fetch(`${API_V1}/metrics/summary`);
 
   if (!response.ok) {
     throw new Error("Could not load summary metrics");
@@ -35,9 +36,9 @@ export async function getSummaryMetrics() {
   return response.json();
 }
 
-// This gets the current active model
+//  gets the current active model
 export async function getCurrentModel() {
-  const response = await fetch(`${API_BASE_URL}/models/current`);
+  const response = await fetch(`${API_V1}/models/current`);
 
   if (!response.ok) {
     throw new Error("Could not load current model");
@@ -46,12 +47,23 @@ export async function getCurrentModel() {
   return response.json();
 }
 
-// This gets the prediction history
+//  gets the prediction history
 export async function getPredictions() {
-  const response = await fetch(`${API_BASE_URL}/predictions`);
+  const response = await fetch(`${API_V1}/predictions`);
 
   if (!response.ok) {
     throw new Error("Could not load predictions");
+  }
+
+  return response.json();
+}
+
+//  gets confidence statistics
+export async function getConfidenceMetrics() {
+  const response = await fetch(`${API_V1}/metrics/confidence`);
+
+  if (!response.ok) {
+    throw new Error("Could not load confidence metrics");
   }
 
   return response.json();
