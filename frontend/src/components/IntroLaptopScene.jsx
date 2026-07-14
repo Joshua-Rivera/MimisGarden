@@ -2,6 +2,10 @@ import { useEffect, useRef } from "react";
 import laptopImage from "../assets/laptop.png";
 
 const clamp = (value) => Math.min(Math.max(value, 0), 1);
+const smootherStep = (value) => {
+    const progress = clamp(value);
+    return progress * progress * progress * (progress * (progress * 6 - 15) + 10);
+};
 
 export default function IntroLaptopScene({
     gardenRef,
@@ -63,13 +67,11 @@ export default function IntroLaptopScene({
             const scrollDistance = Math.max(intro.offsetHeight - window.innerHeight, 1);
             const scrolledDistance = -intro.getBoundingClientRect().top;
             const progress = clamp(scrolledDistance / scrollDistance);
-            const slideProgress = clamp(
-                (scrolledDistance - scrollDistance) / Math.max(window.innerHeight, 1),
-            );
-            const zoomProgress = clamp((progress - 0.08) / 0.72);
-            const easedZoom = 1 - Math.pow(1 - zoomProgress, 3);
-            const photoFade = clamp((progress - 0.62) / 0.25);
-            const screenMorph = clamp((progress - 0.92) / 0.075);
+            const zoomProgress = smootherStep((progress - 0.04) / 0.8);
+            const easedZoom = 1 - Math.pow(1 - zoomProgress, 2.4);
+            const photoFade = smootherStep((progress - 0.52) / 0.42);
+            const screenMorph = smootherStep((progress - 0.7) / 0.3);
+            const slideProgress = smootherStep((progress - 0.9) / 0.1);
 
             // Landscape screens use a true cover calculation. Portrait screens
             // show more of the laptop so the bezel remains readable.
@@ -134,8 +136,8 @@ export default function IntroLaptopScene({
                 garden.style.zIndex = screenMorph >= 1 ? "0" : "5";
             }
 
-            publishReadyState(slideProgress >= 0.08);
-            publishGardenReadyState(slideProgress >= 0.98);
+            publishReadyState(screenMorph >= 0.5);
+            publishGardenReadyState(screenMorph >= 0.96);
             frameId = undefined;
         };
 

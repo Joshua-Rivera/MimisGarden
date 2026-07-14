@@ -6,33 +6,24 @@ import Hero from "./components/Hero.jsx";
 import DashboardPreview from "./components/DashboardPreview.jsx";
 
 export default function App() {
-    const gardenRef = useRef(null);
-    const [introReady, setIntroReady] = useState(() => (
-        typeof window !== "undefined"
-        && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ));
-    const [gardenReady, setGardenReady] = useState(() => (
-        typeof window !== "undefined"
-        && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ));
+  const gardenRef = useRef(null);
+  const prefersReducedMotion = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [introReady, setIntroReady] = useState(prefersReducedMotion);
+  const [gardenReady, setGardenReady] = useState(prefersReducedMotion);
 
-    return (
-
-        <>
-        <Navbar isVisible={introReady} /> {/* shows after the laptop zoom */}
-
-        <IntroLaptopScene
-            gardenRef={gardenRef}
-            onIntroReadyChange={setIntroReady}
-            onGardenReadyChange={setGardenReady}
-        />
-
-        <GardenBackground ref={gardenRef} isActive={gardenReady} />
-
-        <Hero /> {/* shows the hero component */}
-
-        <DashboardPreview /> {/* shows the dashboard preview component */}
-        </>
-
-    );
+  return (
+    <>
+      <Navbar isVisible={introReady} />
+      <IntroLaptopScene
+        gardenRef={gardenRef}
+        onIntroReadyChange={setIntroReady}
+        onGardenReadyChange={setGardenReady}
+      />
+      <GardenBackground ref={gardenRef} isActive={gardenReady} />
+      <Hero />
+      <DashboardPreview />
+    </>
+  );
 }

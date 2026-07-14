@@ -12,16 +12,17 @@ export type Prediction = {
   needs_review: boolean;
 };
 
+const formatLabel = (value: string) =>
+  value.replace(/_/g, " ").replace(/\b\w/g, (letter: string) => letter.toUpperCase());
+
 type PredictionCardProps = {
   prediction: Prediction | null;
 };
 
 export default function PredictionCard({ prediction }: PredictionCardProps) {
+  if (!prediction) return null;
 
-    if (!prediction) {
-        return null;
-    }
-    return (
+  return (
     <div className="prediction-card reveal-on-scroll">
       {/* This creates the top part of the prediction card */}
       <div className="prediction-header">
@@ -29,7 +30,7 @@ export default function PredictionCard({ prediction }: PredictionCardProps) {
           <p className="small-title">Prediction Result</p>
 
           {/* This shows the predicted plant state */}
-          <h3>{prediction.plant_state}</h3>
+          <h3>{formatLabel(prediction.plant_state)}</h3>
         </div>
 
         {/* This shows the confidence badge */}

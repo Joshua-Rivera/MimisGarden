@@ -1,127 +1,192 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from "react";
 import PredictionCard, { type Prediction } from "./PredictionCard";
 import useScrollReveal from "../hooks/useScrollReveal";
 
 const analysisWords = [
-    "Wilting away",
-    "Watering",
-    "Taking root",
-    "Reading leaves",
-    "Growing insight",
+  "Watering",
+  "Taking root",
+  "Reading leaves",
+  "Growing insight",
+  "Checking for wilting",
 ];
 
+const acceptedImageTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+
 export default function ImageUpload() {
-    const uploadRef = useRef<HTMLElement>(null);
-    // stores image file the user selects
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const uploadRef = useRef<HTMLElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const [analysisWordIndex, setAnalysisWordIndex] = useState(0);
+  useScrollReveal(uploadRef, prediction?.prediction_id ?? "");
 
-    //stores image preview link
-    const [previewUrl, setPreviewUrl] = useState("");
-
-    //stores prediction result
-    const [prediction, setPrediction] = useState<Prediction | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysisWordIndex, setAnalysisWordIndex] = useState(0);
-    useScrollReveal(uploadRef, prediction?.prediction_id ?? "");
-
-    useEffect(() => {
-        if (!isAnalyzing) return undefined;
-
-        const wordTimer = window.setInterval(() => {
-            setAnalysisWordIndex((current) => (current + 1) % analysisWords.length);
-        }, 620);
-
-        const resultTimer = window.setTimeout(() => {
-            setPrediction({
-                prediction_id: "pred_fake_001",
-                plant_state: "dry_wilting",
-                possible_condition: "possible_water_stress",
-                confidence: 0.82,
-                severity: "medium",
-                suggestion:
-                    "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
-                model_version: "plant-health-v0-fake",
-                needs_review: false,
-            });
-            setIsAnalyzing(false);
-        }, 3200);
-
-        return () => {
-            window.clearInterval(wordTimer);
-            window.clearTimeout(resultTimer);
-        };
-    }, [isAnalyzing]);
-
-    //runs when user chooses an image
-    function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-        const file = event.target.files?.[0];
-
-        if (!file){return;}
-
-        //saves selected file
-        setSelectedFile(file);
-
-        //creates preview of selected img
-        setPreviewUrl(URL.createObjectURL(file));
-
-        //clears old prediction when new img is chosen
-        setPrediction(null);
-        setIsAnalyzing(false);
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl("");
+      return undefined;
     }
 
-    //analyze button activate
-    function handleAnalyzeClick() {
-        if (!selectedFile){return;}
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
 
-        setPrediction(null);
-        setAnalysisWordIndex(0);
-        setIsAnalyzing(true);
+  useEffect(() => {
+    if (!isAnalyzing) return undefined;
+
+    const wordTimer = window.setInterval(() => {
+      setAnalysisWordIndex((current) => (current + 1) % analysisWords.length);
+    }, 720);
+
+    const resultTimer = window.setTimeout(() => {
+      setPrediction({
+        prediction_id: "pred_fake_001",
+        plant_state: "dry_wilting",
+        possible_condition: "possible_water_stress",
+        confidence: 0.82,
+        severity: "medium",
+        suggestion:
+          "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
+        model_version: "plant-health-v0-fake",
+        needs_review: false,
+      });
+      setIsAnalyzing(false);
+    }, 3600);
+
+    return () => {
+      window.clearInterval(wordTimer);
+      window.clearTimeout(resultTimer);
+    };
+  }, [isAnalyzing]);
+
+  function selectFile(file: File) {
+    if (!acceptedImageTypes.has(file.type)) {
+      setFileError("Choose a PNG, JPG, or WebP image.");
+      return;
     }
-    return (
+
+    setSelectedFile(file);
+    setPrediction(null);
+    setIsAnalyzing(false);
+    setFileError("");
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) selectFile(file);
+    event.target.value = "";
+  }
+
+  function handleDragOver(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    if (event.dataTransfer.types.includes("Files")) setIsDragging(true);
+  }
+
+  function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsDragging(false);
+    }
+  }
+
+  function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setIsDragging(false);
+    const file = event.dataTransfer.files[0];
+    if (file) selectFile(file);
+  }
+
+  function handleAnalyzeClick() {
+    if (!selectedFile || isAnalyzing) return;
+
+    setPrediction(null);
+    setAnalysisWordIndex(0);
+    setIsAnalyzing(true);
+  }
+
+  return (
     <section id="analyze" className="image-upload-section" ref={uploadRef}>
-      {/* This creates the upload box */}
-      <div className="upload-panel reveal-on-scroll">
-        <p className="small-title">Analyze</p>
+      <div className="analyze-workspace reveal-on-scroll">
+        <div className="analyze-heading">
+          <p className="small-title">Analyze</p>
+          <h2>Upload a plant image.</h2>
+          <p>Choose a clear plant or leaf photo to test the prediction workflow.</p>
+        </div>
 
-        <h2>Upload a plant image.</h2>
+        <label
+          className={`file-drop-zone${isDragging ? " is-dragging" : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <span className="file-drop-icon" aria-hidden="true">+</span>
+          <span>{isDragging ? "Drop your plant image" : "Choose or drop an image"}</span>
+          <small>PNG, JPG or WebP</small>
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/webp"
+            onChange={handleFileChange}
+          />
+        </label>
 
-        <p>
-          Choose a plant or leaf photo to test the prediction workflow.
-        </p>
+        {fileError && <p className="file-error" role="alert">{fileError}</p>}
 
-        {/* This creates the file picker */}
-        <input
-          type="file"
-          accept="image/png, image/jpeg, image/jpg, image/webp"
-          onChange={handleFileChange}
-        />
-
-        {/* This shows the image preview after the user chooses a file */}
         {previewUrl && (
           <div className="image-preview-box">
             <img src={previewUrl} alt="Selected plant preview" />
+            <p className="selected-file-name">{selectedFile?.name}</p>
           </div>
         )}
 
-        {/* This creates the analyze button */}
-        <button onClick={handleAnalyzeClick} disabled={isAnalyzing}>
-          {isAnalyzing ? "Analyzing..." : "Analyze Plant"}
+        <button
+          className="button primary-button analyze-button"
+          type="button"
+          onClick={handleAnalyzeClick}
+          disabled={!selectedFile || isAnalyzing}
+        >
+          {isAnalyzing ? "Analyzing…" : "Analyze plant"}
         </button>
 
-        {isAnalyzing && (
-          <div className="analysis-loader" role="status" aria-live="polite">
-            <div className="analysis-loader-ring" aria-hidden="true">
-              <span className="analysis-loader-sprout">●</span>
+        <div className="analysis-output" aria-live="polite">
+          {isAnalyzing ? (
+            <div className="analysis-loader" role="status">
+              <div className="analysis-loader-ring" aria-hidden="true">
+                <span className="analysis-loader-sprout">●</span>
+              </div>
+              <p className="analysis-loader-word" key={analysisWords[analysisWordIndex]}>
+                {analysisWords[analysisWordIndex]}
+              </p>
             </div>
-            <p className="analysis-loader-word" key={analysisWords[analysisWordIndex]}>
-              {analysisWords[analysisWordIndex]}
-            </p>
-          </div>
-        )}
+          ) : prediction ? (
+            <div className="results-panel">
+              <PredictionCard prediction={prediction} />
+              <div className="result-board">
+                <p className="small-title">Next steps</p>
+                <h4>Analysis complete</h4>
+                <p>Review the care guidance and monitor the plant over the next few days.</p>
+                <a className="button secondary-button" href="#dashboard">
+                  View model insights
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="prediction-placeholder">
+              <p className="small-title">Prediction</p>
+              <h3>No prediction yet</h3>
+              <p>Upload an image and select Analyze plant to see results.</p>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* This shows the prediction after Analyze is clicked */}
-      <PredictionCard prediction={prediction} />
     </section>
   );
 }
