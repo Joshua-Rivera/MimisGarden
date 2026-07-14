@@ -1,3 +1,4 @@
 {
-    "js/ts.suggest.enabled": false
+    "js/ts.suggest.enabled": false,
+    "liveServer.settings.port": 5501
 }

@@ -1,5 +1,5 @@
 // This is the backend URL
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 // This sends an image to the backend for prediction
 export async function createPrediction(file: File) {

@@ -22,7 +22,7 @@ export default function PredictionCard({ prediction }: PredictionCardProps) {
         return null;
     }
     return (
-    <div className="prediction-card">
+    <div className="prediction-card reveal-on-scroll">
       {/* This creates the top part of the prediction card */}
       <div className="prediction-header">
         <div>

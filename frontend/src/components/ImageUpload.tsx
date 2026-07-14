@@ -1,7 +1,9 @@
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import PredictionCard, { type Prediction } from "./PredictionCard";
+import useScrollReveal from "../hooks/useScrollReveal";
 
 export default function ImageUpload() {
+    const uploadRef = useRef<HTMLElement>(null);
     // stores image file the user selects
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -10,6 +12,7 @@ export default function ImageUpload() {
 
     //stores prediction result
     const [prediction, setPrediction] = useState<Prediction | null>(null);
+    useScrollReveal(uploadRef, prediction?.prediction_id ?? "");
 
     //runs when user chooses an image
     function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -45,9 +48,9 @@ export default function ImageUpload() {
         setPrediction(fakePrediction);
     }
     return (
-    <section id="analyze" className="image-upload-section">
+    <section id="analyze" className="image-upload-section" ref={uploadRef}>
       {/* This creates the upload box */}
-      <div className="upload-panel">
+      <div className="upload-panel reveal-on-scroll">
         <p className="small-title">Analyze</p>
 
         <h2>Upload a plant image.</h2>

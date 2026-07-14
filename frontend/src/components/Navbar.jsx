@@ -1,7 +1,11 @@
-export default function Navbar() {
+export default function Navbar({ isVisible = true }) {
 
     return(
-        <nav className="navbar">
+        <nav
+            className={`navbar ${isVisible ? "navbar-visible" : "navbar-hidden"}`}
+            aria-hidden={!isVisible}
+            inert={isVisible ? undefined : ""}
+        >
             {/* Navbar content goes here, specifically logo area */}
             <div className="brand">
                 <span className="brand-icon">ADD LOGO</span>
