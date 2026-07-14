@@ -1,6 +1,14 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import PredictionCard, { type Prediction } from "./PredictionCard";
 import useScrollReveal from "../hooks/useScrollReveal";
+
+const analysisWords = [
+    "Wilting away",
+    "Watering",
+    "Taking root",
+    "Reading leaves",
+    "Growing insight",
+];
 
 export default function ImageUpload() {
     const uploadRef = useRef<HTMLElement>(null);
@@ -12,7 +20,37 @@ export default function ImageUpload() {
 
     //stores prediction result
     const [prediction, setPrediction] = useState<Prediction | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisWordIndex, setAnalysisWordIndex] = useState(0);
     useScrollReveal(uploadRef, prediction?.prediction_id ?? "");
+
+    useEffect(() => {
+        if (!isAnalyzing) return undefined;
+
+        const wordTimer = window.setInterval(() => {
+            setAnalysisWordIndex((current) => (current + 1) % analysisWords.length);
+        }, 620);
+
+        const resultTimer = window.setTimeout(() => {
+            setPrediction({
+                prediction_id: "pred_fake_001",
+                plant_state: "dry_wilting",
+                possible_condition: "possible_water_stress",
+                confidence: 0.82,
+                severity: "medium",
+                suggestion:
+                    "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
+                model_version: "plant-health-v0-fake",
+                needs_review: false,
+            });
+            setIsAnalyzing(false);
+        }, 3200);
+
+        return () => {
+            window.clearInterval(wordTimer);
+            window.clearTimeout(resultTimer);
+        };
+    }, [isAnalyzing]);
 
     //runs when user chooses an image
     function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -28,24 +66,16 @@ export default function ImageUpload() {
 
         //clears old prediction when new img is chosen
         setPrediction(null);
+        setIsAnalyzing(false);
     }
 
     //analyze button activate
     function handleAnalyzeClick() {
         if (!selectedFile){return;}
 
-        const fakePrediction = {
-            prediction_id: "pred_fake_001",
-            plant_state: "dry_wilting",
-            possible_condition: "possible_water_stress",
-            confidence: 0.82,
-            severity: "medium",
-            suggestion:
-            "Check soil moisture. If the soil is dry, water the plant and monitor it over the next few days.",
-            model_version: "plant-health-v0-fake",
-            needs_review: false,
-        }
-        setPrediction(fakePrediction);
+        setPrediction(null);
+        setAnalysisWordIndex(0);
+        setIsAnalyzing(true);
     }
     return (
     <section id="analyze" className="image-upload-section" ref={uploadRef}>
@@ -74,9 +104,20 @@ export default function ImageUpload() {
         )}
 
         {/* This creates the analyze button */}
-        <button onClick={handleAnalyzeClick}>
-          Analyze Plant
+        <button onClick={handleAnalyzeClick} disabled={isAnalyzing}>
+          {isAnalyzing ? "Analyzing..." : "Analyze Plant"}
         </button>
+
+        {isAnalyzing && (
+          <div className="analysis-loader" role="status" aria-live="polite">
+            <div className="analysis-loader-ring" aria-hidden="true">
+              <span className="analysis-loader-sprout">●</span>
+            </div>
+            <p className="analysis-loader-word" key={analysisWords[analysisWordIndex]}>
+              {analysisWords[analysisWordIndex]}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* This shows the prediction after Analyze is clicked */}

@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 *mockups
 node_modules/
+
+# Keep project-local Codex skills available without publishing them.
+.codex/skills/

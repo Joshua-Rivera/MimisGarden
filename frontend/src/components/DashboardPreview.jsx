@@ -4,15 +4,15 @@ import useScrollReveal from "../hooks/useScrollReveal";
 const metrics = [
   {
     title: "Total Predictions",
-    value: "1,248 (placeholder)",
+    value: "1,248",
   },
   {
     title: "Average Confidence",
-    value: "82% (placeholder)",
+    value: "82%",
   },
   {
     title: "Needs Review",
-    value: "23 (placeholder)",
+    value: "23",
   },
   {
     title: "Active Model",
@@ -27,7 +27,7 @@ export default function DashboardPreview() {
 
     const renderMetric = (metric, index) => (
         <div
-            className={`metric-card metric-card-edge-${index % 2 === 0 ? "left" : "right"} reveal-on-scroll`}
+            className={`metric-card metric-card-${index + 1} metric-card-edge-${index % 2 === 0 ? "left" : "right"} reveal-on-scroll`}
             key={metric.title}
         >
             <p>{metric.title}</p>
@@ -37,24 +37,18 @@ export default function DashboardPreview() {
 
     return (
         <section id="dashboard" className="dashboard-section" ref={dashboardRef}>
-            <div className="dashboard-orbit-layout">
-                <div className="dashboard-rail dashboard-rail-left">
-                    <div className="section-heading reveal-on-scroll">
-                        <p className="small-title">Dashboard</p>
-                        <h2>Model Insights at a glance.</h2>
-                        <p>
-                            Track predictions, confidence, review queue activity, and active model
-                            versions.
-                        </p>
-                    </div>
-
-                    {metrics.slice(0, 2).map(renderMetric)}
+            <div className="dashboard-slide">
+                <div className="section-heading reveal-on-scroll">
+                    <p className="small-title">Dashboard</p>
+                    <h2>Model Insights at a glance.</h2>
+                    <p>
+                        Track predictions, confidence, review queue activity, and active model
+                        versions.
+                    </p>
                 </div>
 
-                <div className="tree-clearance" aria-hidden="true" />
-
-                <div className="dashboard-rail dashboard-rail-right">
-                    {metrics.slice(2).map((metric, index) => renderMetric(metric, index + 2))}
+                <div className="metrics-deck">
+                    {metrics.map(renderMetric)}
                 </div>
             </div>
 
