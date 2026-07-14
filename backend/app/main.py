@@ -14,10 +14,20 @@ from app.api.v1.routes_model import router as models_router
 from app.api.v1.routes_reviews import router as review_router
 # import models router from the routes_model module in the api.v1 package
 from app.api.v1.routes_metrics import router as metrics_router
-
+# import CORSMiddleware from the fastAPI.middleware.cors module
+from fastapi.middleware.cors import CORSMiddleware
 Base.metadata.create_all(bind=engine)  # Create the database tables if they don't exist
 #create FastAPI instance
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app = FastAPI(
     title = "Mimi's Plants",
     description = "This is a plant disease detection API that uses a deep learning model to predict the disease of a plant based on an image of its leaves.",
