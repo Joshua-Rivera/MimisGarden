@@ -1148,3 +1148,23 @@ body {
         transition: none;
     }
 }
+.limitations-section {
+    padding: 90px 7vw;
+    background: var(--light-cream);
+    color: var(--brown);
+}
+
+.limitations-section h2 {
+    max-width: 760px;
+    margin: 0 0 20px;
+    font-family: Georgia, serif;
+    font-size: clamp(38px, 6vw, 72px);
+    line-height: 0.95;
+}
+
+.limitations-section p {
+    max-width: 850px;
+    color: #674328;
+    font-size: 18px;
+    line-height: 1.7;
+}
