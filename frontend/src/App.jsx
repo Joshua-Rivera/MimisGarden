@@ -4,7 +4,7 @@ import IntroLaptopScene from "./components/IntroLaptopScene.jsx";
 import GardenBackground from "./components/GardenBackground.jsx";
 import Hero from "./components/Hero.jsx";
 import DashboardPreview from "./components/DashboardPreview.jsx";
-
+import LimitationsSection from "./components/LimitationsSection.jsx";
 export default function App() {
   const gardenRef = useRef(null);
   const prefersReducedMotion = () =>
@@ -24,6 +24,7 @@ export default function App() {
       <GardenBackground ref={gardenRef} isActive={gardenReady} />
       <Hero />
       <DashboardPreview />
+      <LimitationsSection />
     </>
   );
 }
