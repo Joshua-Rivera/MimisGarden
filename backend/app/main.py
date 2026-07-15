@@ -18,16 +18,6 @@ from app.api.v1.routes_metrics import router as metrics_router
 from fastapi.middleware.cors import CORSMiddleware
 Base.metadata.create_all(bind=engine)  # Create the database tables if they don't exist
 #create FastAPI instance
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5500",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 app = FastAPI(
     title = "Mimi's Plants",
     description = "This is a plant disease detection API that uses a deep learning model to predict the disease of a plant based on an image of its leaves.",
@@ -42,3 +32,15 @@ app.include_router(metrics_router)
 # use uvicorn to run the app with the command: python -m uvicorn app.main:app --reload
 # use the following command to get into the correct directory:
     # cd cd C:\Users\{your user}\MimisGarden\backend\app (windows)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5500",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
