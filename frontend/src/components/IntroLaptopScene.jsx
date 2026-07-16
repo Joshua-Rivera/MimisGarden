@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import laptopImage from "../assets/laptop.png";
 
 const clamp = (value) => Math.min(Math.max(value, 0), 1);
@@ -17,7 +17,7 @@ export default function IntroLaptopScene({
     const readyStateRef = useRef(null);
     const gardenReadyStateRef = useRef(null);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const intro = introRef.current;
         if (!intro) return undefined;
 
@@ -58,6 +58,7 @@ export default function IntroLaptopScene({
                     garden.style.setProperty("--garden-radius", "0px");
                     garden.style.setProperty("--garden-tree-width", `${Math.min(Math.max(window.innerWidth * 0.43, 390), 640)}px`);
                     garden.style.zIndex = "0";
+                    garden.style.visibility = "visible";
                 }
                 frameId = undefined;
                 return;
@@ -134,6 +135,7 @@ export default function IntroLaptopScene({
                 garden.style.setProperty("--garden-radius", `${contentRadius.toFixed(2)}px`);
                 garden.style.setProperty("--garden-tree-width", `${treeWidth.toFixed(2)}px`);
                 garden.style.zIndex = screenMorph >= 1 ? "0" : "5";
+                garden.style.visibility = "visible";
             }
 
             publishReadyState(screenMorph >= 0.5);

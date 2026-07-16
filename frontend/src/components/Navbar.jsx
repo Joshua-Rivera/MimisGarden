@@ -1,3 +1,5 @@
+import monsterraleaf from "../assets/monterraleaf.png";
+
 export default function Navbar({ isVisible = true }) {
   return (
     <nav
@@ -7,7 +9,9 @@ export default function Navbar({ isVisible = true }) {
       inert={isVisible ? undefined : ""}
     >
       <a className="brand" href="#home" aria-label="Mimi's Garden home">
-        <span className="brand-icon" aria-hidden="true">🌿</span>
+    <div className="brand-icon">
+          <img className="brand-icon" src={monsterraleaf} alt="brand-icon" />
+        </div>
         <span>Mimi&apos;s Garden</span>
       </a>
 

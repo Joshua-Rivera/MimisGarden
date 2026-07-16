@@ -151,7 +151,7 @@ body {
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--light-cream);
+    background: var(--cream);
     font-family: Arial, sans-serif;
     font-size: 22px;
 }
@@ -206,6 +206,7 @@ body {
     position: fixed;
     inset: 0;
     z-index: 0;
+    visibility: hidden;
     pointer-events: none;
 }
 
@@ -1039,7 +1040,7 @@ body {
     }
 
     .metric-card {
-        width: min(78vw, 340px);
+        width: 100%;
         min-height: 132px;
         margin-bottom: 18px;
         background: rgba(255, 239, 219, 0.9);
@@ -1052,14 +1053,6 @@ body {
 
     .metrics-deck .metric-card:last-child {
         margin-bottom: 0;
-    }
-
-    .metric-card-edge-left {
-        margin-right: auto;
-    }
-
-    .metric-card-edge-right {
-        margin-left: auto;
     }
 
     .image-upload-section {
@@ -1149,6 +1142,8 @@ body {
     }
 }
 .limitations-section {
+    position: relative;
+    z-index: 2;
     padding: 90px 7vw;
     background: var(--light-cream);
     color: var(--brown);
