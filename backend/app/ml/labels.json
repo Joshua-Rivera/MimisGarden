@@ -1,8 +1,6 @@
-{
-
+[
     "healthy",
-    "leaf-spots",
-    "yellowing",
-    "severe_damage"
-
-}
+    "leaf_spots",
+    "severe_damage",
+    "yellowing"
+]
