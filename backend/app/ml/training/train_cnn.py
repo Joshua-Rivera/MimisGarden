@@ -29,16 +29,36 @@ IMAGE_SIZE = 224 # size of images to be used for training
 BATCH_SIZE = 32 # number of images to be used in each training batch
 EPOCHS = 10 # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0003 # how fast the model learns
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
 def load_labels():
     """Load the labels from the labels.json file."""
     with open(LABELS_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+def validate_dataset_dir(dataset_dir, split_name):
+    """Ensure a dataset split exists and contains at least one image."""
+    if not dataset_dir.is_dir():
+        raise FileNotFoundError(f"{split_name} directory does not exist: {dataset_dir}")
+
+    image_files = [
+        path
+        for path in dataset_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+    ]
+    if not image_files:
+        raise ValueError(
+            f"No images found in {split_name} directory: {dataset_dir}\n"
+            "Add images inside its class folders before starting training."
+        )
     
 def create_dataloaders():
     """ Changes training images so that the model can understand them better,
     essentially its just simple augmentation (test 1)
     """
+    validate_dataset_dir(TRAIN_DIR, "training")
+    validate_dataset_dir(VAL_DIR, "validation")
+
     train_transforms = transforms.Compose([
          transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
         transforms.RandomHorizontalFlip(),
