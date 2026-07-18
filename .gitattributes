@@ -1,0 +1,1 @@
+backend/app/ml/models/plant_model_v1.pt filter=lfs diff=lfs merge=lfs -text

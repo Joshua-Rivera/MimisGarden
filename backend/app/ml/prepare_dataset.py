@@ -2,12 +2,16 @@ from pathlib import Path
 import random
 import shutil
 
+
 ML_DIR = Path(__file__).resolve().parent
 RAW_DIR = ML_DIR / "raw" / "new_plant_diseases"
 OUTPUT_DIR = ML_DIR / "data"
+
 MAX_TRAIN_IMAGES_PER_LABEL = 1000
 MAX_VAL_IMAGES_PER_LABEL = 1000
+
 random.seed(42)
+
 
 CLASS_MAPPING = {
     "healthy": [
@@ -24,7 +28,6 @@ CLASS_MAPPING = {
         "Strawberry___healthy",
         "Tomato___healthy",
     ],
-
     "leaf_spots": [
         "Apple___Apple_scab",
         "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
@@ -36,13 +39,6 @@ CLASS_MAPPING = {
         "Tomato___Target_Spot",
         "Strawberry___Leaf_scorch",
     ],
-
-    "yellowing": [
-        "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
-        "Orange___Haunglongbing_(Citrus_greening)",
-        "Tomato___Tomato_mosaic_virus",
-    ],
-
     "severe_damage": [
         "Apple___Black_rot",
         "Apple___Cedar_apple_rust",
@@ -60,38 +56,62 @@ CLASS_MAPPING = {
         "Tomato___Spider_mites Two-spotted_spider_mite",
     ],
 }
-def find_split_folder(split_names):
-    candidates = []
+
+
+def find_split_folder(split_names, required=True):
+    print(f"Looking inside: {RAW_DIR}")
+    print(f"Raw folder exists: {RAW_DIR.exists()}")
+
+    if not RAW_DIR.exists():
+        raise FileNotFoundError(f"RAW_DIR does not exist: {RAW_DIR}")
+
     for folder in RAW_DIR.rglob("*"):
-        if folder.is_dir() and folder.name.islower() in split_names:
-            class_folders = [item for item in folder.iterdir() if item.is_dir()]
-            candidates.append((len(class_folders), folder))
-    if not candidates:
+        if folder.is_dir() and folder.name.lower() in split_names:
+            print(f"Found split folder: {folder}")
+            return folder
+
+    if required:
         raise FileNotFoundError(f"Could not find split folder for {split_names}")
-    candidates.sort(reverse=True)
-    return candidates[0][1]
+
+    return None
+
 
 def get_images_from_classes(split_folder, class_names):
     image_paths = []
+
     for class_name in class_names:
         class_folder = split_folder / class_name
+
         if not class_folder.exists():
-            print(f"WARNING: Missing folder - {class_folder}")
+            print(f"Missing source folder: {class_folder}")
             continue
+
         for image_path in class_folder.iterdir():
             if image_path.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]:
                 image_paths.append(image_path)
 
     return image_paths
 
+
 def reset_output_folder(split_name, mimi_label):
     target_folder = OUTPUT_DIR / split_name / mimi_label
+
     if target_folder.exists():
         shutil.rmtree(target_folder)
+
     target_folder.mkdir(parents=True, exist_ok=True)
+
     return target_folder
 
-def copy_images(split_name, source_split_folder, max_per_label):
+
+def copy_image_list(images, target_folder, mimi_label):
+    for index, image_path in enumerate(images):
+        new_name = f"{mimi_label}_{index:05d}{image_path.suffix.lower()}"
+        target_path = target_folder / new_name
+        shutil.copy2(image_path, target_path)
+
+
+def copy_images_from_existing_split(split_name, source_split_folder, max_per_label):
     for mimi_label, source_classes in CLASS_MAPPING.items():
         target_folder = reset_output_folder(split_name, mimi_label)
 
@@ -102,20 +122,55 @@ def copy_images(split_name, source_split_folder, max_per_label):
 
         print(f"{split_name} / {mimi_label}: copying {len(selected_images)} images")
 
-        for index, image_path in enumerate(selected_images):
-            new_name = f"{mimi_label}_{index:05d}{image_path.suffix.lower()}"
-            target_path = target_folder / new_name
-            shutil.copy2(image_path, target_path)
+        copy_image_list(selected_images, target_folder, mimi_label)
+
+
+def copy_images_by_splitting_train(train_folder):
+    for mimi_label, source_classes in CLASS_MAPPING.items():
+        train_target_folder = reset_output_folder("train", mimi_label)
+        val_target_folder = reset_output_folder("val", mimi_label)
+
+        images = get_images_from_classes(train_folder, source_classes)
+        random.shuffle(images)
+
+        val_images = images[:MAX_VAL_IMAGES_PER_LABEL]
+        train_images = images[
+            MAX_VAL_IMAGES_PER_LABEL:
+            MAX_VAL_IMAGES_PER_LABEL + MAX_TRAIN_IMAGES_PER_LABEL
+        ]
+
+        print(f"train / {mimi_label}: copying {len(train_images)} images")
+        print(f"val / {mimi_label}: copying {len(val_images)} images")
+
+        copy_image_list(train_images, train_target_folder, mimi_label)
+        copy_image_list(val_images, val_target_folder, mimi_label)
+
 
 def main():
+    print("Preparing Mimi's Garden dataset...")
+
     train_folder = find_split_folder({"train"})
-    val_folder = find_split_folder({"valid", "val", "validation"})
+    val_folder = find_split_folder({"valid", "val", "validation"}, required=False)
 
-    print(f"Train folder: {train_folder}")
-    print(f"Validation folder: {val_folder}")
+    print(f"Train folder selected: {train_folder}")
 
-    copy_images("train", train_folder, MAX_TRAIN_IMAGES_PER_LABEL)
-    copy_images("val", val_folder, MAX_VAL_IMAGES_PER_LABEL)
+    if val_folder is None:
+        print("No validation folder found. Creating validation split from train data.")
+        copy_images_by_splitting_train(train_folder)
+    else:
+        print(f"Validation folder selected: {val_folder}")
+
+        copy_images_from_existing_split(
+            split_name="train",
+            source_split_folder=train_folder,
+            max_per_label=MAX_TRAIN_IMAGES_PER_LABEL,
+        )
+
+        copy_images_from_existing_split(
+            split_name="val",
+            source_split_folder=val_folder,
+            max_per_label=MAX_VAL_IMAGES_PER_LABEL,
+        )
 
     print("Dataset preparation complete.")
 

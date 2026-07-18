@@ -8,12 +8,17 @@ from torch.utils.data import DataLoader # optimizing how data is loaded
 from torchvision import datasets, transforms # ease of use for training
 from sklearn.metrics import accuracy_score, f1_score # quantification of results
 from tqdm import tqdm # for loading bars
+
+if torch.cuda.is_available():
+    torch.backends.cudnn.benchmark = True
+    torch.set_float32_matmul_precision("high")
+
 # main ML folder
 ML_DIR = Path(__file__).resolve().parent.parent
 # training image storage
-TRAIN_DIR = ML_DIR / "ml_data" / "train"
+TRAIN_DIR = ML_DIR / "data" / "train"
 # validation image storage
-VAL_DIR = ML_DIR / "ml_data" / "val"
+VAL_DIR = ML_DIR / "data" / "val"
 
 # where trained models are saved :D
 MODELS_DIR = ML_DIR / "models"
@@ -26,8 +31,8 @@ LABELS_PATH = ML_DIR / "labels.json"
 
 #model training contrl 
 IMAGE_SIZE = 224 # size of images to be used for training
-BATCH_SIZE = 32 # number of images to be used in each training batch
-EPOCHS = 10 # number of times to train the model on the entire dataset
+BATCH_SIZE = 128 # number of images to be used in each training batch
+EPOCHS = 100 # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0003 # how fast the model learns
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
@@ -99,6 +104,8 @@ def create_dataloaders():
         batch_size=BATCH_SIZE,
         shuffle=True,
         num_workers=4,
+        pin_memory=torch.cuda.is_available(),
+        persistent_workers=True
     )
     #validation image loader
     val_loader = DataLoader(
@@ -106,6 +113,8 @@ def create_dataloaders():
         batch_size=BATCH_SIZE,
         shuffle=False,
         num_workers=4,
+        pin_memory=torch.cuda.is_available(),
+        persistent_workers=True
     )
     return train_dataset, val_dataset, train_loader, val_loader
 
@@ -159,24 +168,24 @@ def create_model(num_classes):
     model = MimiCNN(num_classes)
     return model
 
-def train_one_epoch(model, train_loader, loss_function, optimizer, device):
+def train_one_epoch(model, train_loader, loss_function, optimizer, device, scaler):
     """Train the model for one epoch."""
     model.train()
     total_loss = 0
     for images, labels in tqdm(train_loader, desc="Training"):
         #moves the images and labels to the device (GPU or CPU) for training if available
-        images = images.to(device)
-        labels = labels.to(device)
-        #clears old learning
-        optimizer.zero_grad()
-        #predictions from the model
-        outputs = model(images)
-        # checks how wrong the model is
-        loss = loss_function(outputs, labels)
-        #calculates how to improve the model
-        loss.backward()
-        # updates the model
-        optimizer.step()
+        images = images.to(device, non_blocking=True)
+        labels = labels.to(device, non_blocking=True)
+
+        optimizer.zero_grad(set_to_none=True)
+
+        with torch.amp.autocast(device_type=device.type, enabled=device.type == "cuda"):
+            outputs = model(images)
+            loss = loss_function(outputs, labels)
+
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
         #adds loss for easy tracking
         total_loss += loss.item()
     return total_loss / len(train_loader)
@@ -191,12 +200,13 @@ def evaluate(model, val_loader, loss_function, device):
     with torch.no_grad():
         for images, labels in tqdm(val_loader, desc="Validating"):
             #moves the images and labels to the device (GPU or CPU) for training if available
-            images = images.to(device)
-            labels = labels.to(device)
+            images = images.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
             #predictions from the model
-            outputs = model(images)
-            # checks how wrong the model is
-            loss = loss_function(outputs, labels)
+            with torch.amp.autocast(device_type=device.type, enabled=device.type == "cuda"):
+                outputs = model(images)
+                # checks how wrong the model is
+                loss = loss_function(outputs, labels)
             # chooses the class with the highest score
             predictions = torch.argmax(outputs, dim=1)
             #adds loss for easy tracking
@@ -262,6 +272,7 @@ def main():
         model.parameters(),
         lr=LEARNING_RATE
     )
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
     best_f1_score = 0.0
     for epoch in range(EPOCHS):
         print(f"\nEpoch {epoch + 1}/{EPOCHS}")
@@ -271,7 +282,8 @@ def main():
             train_loader = train_loader,
             loss_function = loss_function,
             optimizer = optimizer,
-            device = device
+            device = device,
+            scaler = scaler
         )
         # tests the model on testing data
         val_loss, accuracy, f1 = evaluate(
