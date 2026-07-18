@@ -7,5 +7,15 @@ __pycache__/
 *mockups
 node_modules/
 
+# Local ML datasets and generated dataset splits
+backend/app/ml/data/
+backend/app/ml/raw/
+backend/app/ml/ml_data/
+backend/ml/
+
+# Generated ML model checkpoints (store these outside regular Git or use Git LFS)
+backend/app/ml/models/*.pt
+backend/app/ml/models/*.pth
+
 # Keep project-local Codex skills available without publishing them.
 .codex/skills/
