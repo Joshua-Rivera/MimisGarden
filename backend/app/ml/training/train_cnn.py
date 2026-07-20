@@ -37,7 +37,7 @@ LEARNING_RATE = 0.0003 # how fast the model learns
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
 
 def load_labels():
-    """Load the labels from the labels.json file."""
+    """Load the labels from the labels.json fil460e."""
     with open(LABELS_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
