@@ -32,10 +32,12 @@ LABELS_PATH = ML_DIR / "labels.json"
 #model training contrl 
 IMAGE_SIZE = 224 # size of images to be used for training
 BATCH_SIZE = 128 # number of images to be used in each training batch
-EPOCHS = 100 # number of times to train the model on the entire dataset
+EPOCHS = 30 # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0003 # how fast the model learns
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
-
+best_f1_score = 0.0
+PATIENCE = 5 # number of epochs to wait for improvement before stopping training
+epochs_without_improvement = 0 # counter for epochs without improvement
 def load_labels():
     """Load the labels from the labels.json fil460e."""
     with open(LABELS_PATH, "r", encoding="utf-8") as f:
@@ -307,6 +309,12 @@ def main():
                 accuracy = accuracy,
                 f1 = f1
             )
+        elif f1 <= best_f1_score:
+            epochs_wihout_improvement += 1
+            print(f"No improvement in Epoch: {EPOCHS}")
+            if epochs_without_improvement >= PATIENCE:
+                print("No improvement for several epochs. Stopping training.")
+                break
     print("\nTraining Complete.\n"
           f"Best F1 score: {best_f1_score:.4f}")
 if __name__ == "__main__":
