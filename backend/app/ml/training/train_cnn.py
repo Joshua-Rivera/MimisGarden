@@ -313,7 +313,7 @@ def main():
             epochs_wihout_improvement += 1
             print(f"No improvement in Epoch: {EPOCHS}")
             if epochs_without_improvement >= PATIENCE:
-                print("No improvement for several epochs. Stopping training.")
+                print("No improvement for several epochs. Early Stopping, training ended.")
                 break
     print("\nTraining Complete.\n"
           f"Best F1 score: {best_f1_score:.4f}")
