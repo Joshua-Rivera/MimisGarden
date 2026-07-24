@@ -30,7 +30,7 @@ LABELS_PATH = ML_DIR / "labels.json"
 
 
 #model training contrl 
-IMAGE_SIZE = 224 # size of images to be used for training
+IMAGE_SIZE = 448 # size of images to be used for training
 BATCH_SIZE = 128 # number of images to be used in each training batch
 EPOCHS = 30 # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0005 # how fast the model learns
