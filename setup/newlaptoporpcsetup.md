@@ -1,4 +1,4 @@
-### NEW DEVICE SETUP FOR PERSONAL REFERENCE AND USE ONLY ###
+### NEW DEVICE SETUP FOR PERSONAL REFERENCE AND USE ONLY, SPECIFICALLY MACOS ###
 # Mimi's PlantHealth Ops — macOS + VS Code Setup
 
 This guide configures the Mimi’s Garden project for development on macOS using Visual Studio Code.
