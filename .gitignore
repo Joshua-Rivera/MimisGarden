@@ -19,3 +19,25 @@ backend/app/ml/models/*.pth
 
 # Keep project-local Codex skills available without publishing them.
 .codex/skills/
+# Python
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+# Environment variables
+backend/.env
+frontend/.env
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+# Uploaded files and models
+backend/storage/uploaded_images/*
+!backend/storage/uploaded_images/.gitkeep
+backend/storage/models/*
+!backend/storage/models/.gitkeep
+# Frontend
+frontend/node_modules/
+frontend/dist/
+# macOS
+.DS_Store
