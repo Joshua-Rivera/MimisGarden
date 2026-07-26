@@ -42,4 +42,4 @@ frontend/dist/
 # macOS
 .DS_Store
 #ignore part of setup
-.setup/ml_system_benchmark
+setup/ml_system_benchmark
