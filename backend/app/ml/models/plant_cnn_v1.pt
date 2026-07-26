@@ -1,7 +1,0 @@
-{
-
-    "plant_state" : predicted_label,
-    "confidence" : confidence,
-    "model_version" : "plant_cnn_v1",
-
-}
