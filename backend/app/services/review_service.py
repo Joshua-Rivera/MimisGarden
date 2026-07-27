@@ -1,10 +1,20 @@
 from datetime import datetime
-from uuid import uuid4 #assign speficic unique id to request
+from uuid import uuid4  # assign speficic unique id to request
 
-from fastapi import HTTPException #http error exception import
-from sqlalchemy.orm import Session # import the Session class from SQLAlchemy for database interactions
-from app.db.models import Review, PredictionLog #import the Review and PredictionLog models from the models module
-from app.schemas.review_schema import ReviewCreate 
+from fastapi import HTTPException  # http error exception import
+from sqlalchemy.orm import (
+    Session,
+)  # import the Session class from SQLAlchemy for database interactions
+from app import db
+from app.db.models import (
+    Review,
+    PredictionLog,
+)  # import the Review and PredictionLog models from the models module
+from app.ml.models import review
+from app.ml.models.review import ReviewSample
+from app.ml.review_satus import ReviewStatus
+from app.schemas.review_schema import ReviewCreate
+
 
 def get_review_queue(db: Session) -> list[PredictionLog]:
     """
@@ -14,10 +24,13 @@ def get_review_queue(db: Session) -> list[PredictionLog]:
         db (Session): The SQLAlchemy database session.
     """
 
-    return (db.query(PredictionLog)
+    return (
+        db.query(PredictionLog)
         .filter(PredictionLog.needs_review == True)
         .order_by(PredictionLog.created_at.desc())
-        .all())
+        .all()
+    )
+
 
 def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) -> Review:
     """
@@ -38,7 +51,8 @@ def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) ->
     prediction = (
         db.query(PredictionLog)
         .filter(PredictionLog.prediction_id == prediction_id)
-        .first())
+        .first()
+    )
     if prediction is None:
         raise HTTPException(status_code=404, detail="Prediction not found")
 
@@ -48,7 +62,7 @@ def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) ->
         prediction_id=prediction_id,
         correct_label=review_data.correct_label,
         review_notes=review_data.review_notes,
-        reviewed_at=datetime.utcnow()  # Set the current UTC time as the review timestamp
+        reviewed_at=datetime.utcnow(),  # Set the current UTC time as the review timestamp
     )
 
     # Add the new review to the database session and commit
@@ -60,3 +74,26 @@ def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) ->
         db.commit()  # Commit the change to the database
         db.refresh(prediction)  # Refresh to get the updated state from the database
     return new_review
+
+
+def approve_review(
+    db: Session, review: ReviewSample, correected_label: str
+) -> ReviewSample:
+    """"""
+    review.corrected_label = corrected_label
+    review.review_status = ReviewStatus.REVIEWED.value
+    review.approved_for_training = True
+    db.commit()
+    db.refresh(review)
+    return review
+
+
+def reject_review(
+    db: Session,
+    review: ReviewSample,
+) -> ReviewSample:
+    review.review_status = ReviewStatus.REJECTED.value
+    review.approved_for_training = False
+    db.commit()
+    db.refresh(review)
+    return review
