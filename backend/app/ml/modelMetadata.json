@@ -1,0 +1,19 @@
+{
+    "version" : "mimi_cnn_v1",
+    "file" : "active/mimi_cnn_v1.pt",
+    "architecture" : "CNN",
+    "framework" : "PyTorch",
+    "dataset" : [
+        "PlantVillage"
+    ],
+    "labels" : [
+        "healthy",
+        "leaf_spots",
+        "severe_damage"
+    ],
+    "image_size" : 224,
+    "accuracy" : 0.00,
+    "f1_score" : 0.00,
+    "created_at" : "2026-07-26",
+    "notes" : "Baseline training on Preliminary PlantVillage dataset. Model is not yet trained, accuracy and f1_score are placeholders."
+}
