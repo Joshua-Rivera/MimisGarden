@@ -97,3 +97,12 @@ def reject_review(
     db.commit()
     db.refresh(review)
     return review
+
+
+##future proofing for admin dashboard for yours truly :D
+def get_pending_reviews(db: Session):
+    return (
+        db.query(ReviewSample)
+        .filter(ReviewSample.review_status == ReviewStatus.PENDING.value)
+        .all()
+    )
