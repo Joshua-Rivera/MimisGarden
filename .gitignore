@@ -44,3 +44,6 @@ frontend/dist/
 #ignore part of setup
 setup/ml_system_benchmark
 setup/native_ml_preflight
+backend/app/ml/datasets
+backend/app/ml/manifests
+backend/app/ml/preprocessing
