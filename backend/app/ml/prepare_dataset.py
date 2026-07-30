@@ -2,13 +2,12 @@ from pathlib import Path
 import random
 import shutil
 
-
 ML_DIR = Path(__file__).resolve().parent
-RAW_DIR = ML_DIR / "raw" / "new_plant_diseases"
+RAW_DIR = ML_DIR / "raw" / "KaggleNewPlantDiseaseDataset"
 OUTPUT_DIR = ML_DIR / "data"
 
-MAX_TRAIN_IMAGES_PER_LABEL = 1000
-MAX_VAL_IMAGES_PER_LABEL = 1000
+MAX_TRAIN_IMAGES_PER_LABEL = 50000
+MAX_VAL_IMAGES_PER_LABEL = 50000
 
 random.seed(42)
 
@@ -135,8 +134,8 @@ def copy_images_by_splitting_train(train_folder):
 
         val_images = images[:MAX_VAL_IMAGES_PER_LABEL]
         train_images = images[
-            MAX_VAL_IMAGES_PER_LABEL:
-            MAX_VAL_IMAGES_PER_LABEL + MAX_TRAIN_IMAGES_PER_LABEL
+            MAX_VAL_IMAGES_PER_LABEL : MAX_VAL_IMAGES_PER_LABEL
+            + MAX_TRAIN_IMAGES_PER_LABEL
         ]
 
         print(f"train / {mimi_label}: copying {len(train_images)} images")
