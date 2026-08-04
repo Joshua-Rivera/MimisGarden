@@ -34,9 +34,9 @@ MODEL_PATH = MODELS_DIR / "plant_model_v1.pt"
 LABELS_PATH = ML_DIR / "labels.json"
 
 
-# model training contrl
+# model training control area
 IMAGE_SIZE = 224  # size of images to be used for training
-BATCH_SIZE = 128  # number of images to be used in each training batch
+BATCH_SIZE = 64  # number of images to be used in each training batch
 EPOCHS = 10  # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0005  # how fast the model learns
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
