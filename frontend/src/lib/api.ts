@@ -1,7 +1,9 @@
 // backend URL
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
-// main API path
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV
+    ? "http://127.0.0.1:8000"
+    : "https://mimisgarden.onrender.com"); // main API path
 const API_V1 = `${API_BASE_URL}/api/v1`;
 // sends an image to the backend for processing
 export async function createPrediction(file: File) {
