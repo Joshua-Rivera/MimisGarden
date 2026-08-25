@@ -1,0 +1,14 @@
+# Local database and SQLite temporary files
+storage/*.db
+storage/*.db-journal
+storage/*.db-shm
+storage/*.db-wal
+
+# Uploaded runtime data
+storage/uploaded_images/*
+!storage/uploaded_images/.gitkeep
+
+__pycache__/
+*.py[cod]
+.venv/
+.env
