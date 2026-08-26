@@ -1,4 +1,4 @@
-import monsterraleaf from "../assets/monterraleaf.png";
+import monsterraleaf from "../assets/monterraleaf.webp";
 
 export default function Navbar({ isVisible = true }) {
   return (

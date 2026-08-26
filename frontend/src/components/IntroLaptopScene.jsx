@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import laptopImage from "../assets/laptop.png";
+import laptopImage from "../assets/laptop.webp";
 
 const clamp = (value) => Math.min(Math.max(value, 0), 1);
 const smootherStep = (value) => {

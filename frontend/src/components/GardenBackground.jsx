@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
-import cleanTree from "../assets/cleantree.png";
-import mountainBackground from "../assets/mountainbg.png";
+import cleanTree from "../assets/cleantree.webp";
+import mountainBackground from "../assets/mountainbg.webp";
 
 const windLeaves = Array.from({ length: 8 });
 const fallingLeaves = Array.from({ length: 6 });

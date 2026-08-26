@@ -91,7 +91,7 @@ body {
     will-change: opacity;
 }
 
-/* These percentages match the black display area in laptop.png. */
+/* These percentages match the black display area in laptop.webp. */
 .intro-laptop-screen {
     position: absolute;
     top: 25.1%;
