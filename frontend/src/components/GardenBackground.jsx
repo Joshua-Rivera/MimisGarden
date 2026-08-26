@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import cleanTree from "../assets/cleantree.webp";
 import mountainBackground from "../assets/mountainbg.webp";
+import mobileMountainBackground from "../assets/mountainbg-mobile.webp";
 
 const windLeaves = Array.from({ length: 8 });
 const fallingLeaves = Array.from({ length: 6 });
@@ -13,7 +14,10 @@ const GardenBackground = forwardRef(function GardenBackground({ isActive = true 
             aria-hidden="true"
         >
             <div className="garden-scene-shell">
-                <img src={mountainBackground} alt="" className="mountain-background" />
+                <picture>
+                    <source media="(max-width: 700px)" srcSet={mobileMountainBackground} />
+                    <img src={mountainBackground} alt="" className="mountain-background" />
+                </picture>
 
                 {isActive && (
                     <div className="wind-leaves">
