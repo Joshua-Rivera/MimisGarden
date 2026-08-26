@@ -203,6 +203,8 @@ body {
     --garden-right-slope: 0%;
     --garden-radius: 0px;
     --garden-tree-width: clamp(390px, 43vw, 640px);
+    --garden-mobile-mountain-scale: 1;
+    --garden-mobile-tree-scale: 1;
     position: fixed;
     inset: 0;
     z-index: 0;
@@ -986,17 +988,46 @@ body {
     }
 }
 
+@media (max-width: 700px) {
+    .intro-laptop-scene {
+        height: 200vh;
+        height: 200svh;
+    }
+
+    .site-garden-background {
+        --garden-left: 0px;
+        --garden-top: 0px;
+        --garden-width: 100vw;
+        --garden-height: 100svh;
+        --garden-left-slope: 0%;
+        --garden-right-slope: 0%;
+        --garden-radius: 0px;
+        --garden-tree-width: clamp(300px, 92vw, 520px);
+        --garden-mobile-mountain-scale: 1;
+        --garden-mobile-tree-scale: 0.82;
+        z-index: 5;
+        visibility: visible;
+    }
+
+    .intro-laptop-backdrop,
+    .intro-laptop-frame {
+        display: none;
+    }
+
+    .mountain-background {
+        transform: scale(var(--garden-mobile-mountain-scale));
+        transform-origin: center center;
+        will-change: transform;
+    }
+
+    .tree-layer {
+        transform: translateX(-50%) scale(var(--garden-mobile-tree-scale));
+        transform-origin: center bottom;
+        will-change: transform;
+    }
+}
+
 @media (max-width: 600px) {
-    .intro-laptop-backdrop {
-        display: block;
-        object-position: center;
-    }
-
-    .intro-laptop-photo {
-        -webkit-mask-image: linear-gradient(180deg, transparent, #000 13%, #000 88%, transparent);
-        mask-image: linear-gradient(180deg, transparent, #000 13%, #000 88%, transparent);
-    }
-
     .small-title {
         font-size: 11px;
     }
