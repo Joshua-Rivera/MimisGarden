@@ -1,4 +1,4 @@
-import monsterraleaf from "../assets/monterraleaf.png";
+import monsterraleaf from "../assets/monterraleaf.webp";
 
 export default function Navbar({ isVisible = true }) {
   return (
@@ -6,7 +6,7 @@ export default function Navbar({ isVisible = true }) {
       className={`navbar ${isVisible ? "navbar-visible" : "navbar-hidden"}`}
       aria-label="Primary navigation"
       aria-hidden={!isVisible}
-      inert={isVisible ? undefined : ""}
+      inert={!isVisible}
     >
       <a className="brand" href="#home" aria-label="Mimi's Garden home">
     <div className="brand-icon">

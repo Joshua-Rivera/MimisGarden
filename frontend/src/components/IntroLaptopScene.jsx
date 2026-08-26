@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef } from "react";
-import laptopImage from "../assets/laptop.png";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import laptopImage from "../assets/laptop.webp";
 
+const MOBILE_LAYOUT_QUERY = "(max-width: 700px)";
 const clamp = (value) => Math.min(Math.max(value, 0), 1);
 const smootherStep = (value) => {
     const progress = clamp(value);
@@ -16,12 +17,25 @@ export default function IntroLaptopScene({
     const screenAnchorRef = useRef(null);
     const readyStateRef = useRef(null);
     const gardenReadyStateRef = useRef(null);
+    const [isMobileLayout, setIsMobileLayout] = useState(() =>
+        typeof window !== "undefined" && window.matchMedia(MOBILE_LAYOUT_QUERY).matches,
+    );
+
+    useEffect(() => {
+        const mobileLayout = window.matchMedia(MOBILE_LAYOUT_QUERY);
+        const updateLayout = () => setIsMobileLayout(mobileLayout.matches);
+
+        updateLayout();
+        mobileLayout.addEventListener("change", updateLayout);
+        return () => mobileLayout.removeEventListener("change", updateLayout);
+    }, []);
 
     useLayoutEffect(() => {
         const intro = introRef.current;
         if (!intro) return undefined;
 
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const mobileLayout = window.matchMedia(MOBILE_LAYOUT_QUERY);
         const previousScrollRestoration = window.history.scrollRestoration;
         let frameId;
 
@@ -32,15 +46,17 @@ export default function IntroLaptopScene({
 
         // Only notify App when the navbar visibility actually changes.
         const publishReadyState = (isReady) => {
-            if (readyStateRef.current === isReady) return;
+            if (readyStateRef.current === isReady) return false;
             readyStateRef.current = isReady;
             onIntroReadyChange(isReady);
+            return true;
         };
 
         const publishGardenReadyState = (isReady) => {
-            if (gardenReadyStateRef.current === isReady) return;
+            if (gardenReadyStateRef.current === isReady) return false;
             gardenReadyStateRef.current = isReady;
             onGardenReadyChange(isReady);
+            return true;
         };
 
         const updateIntro = () => {
@@ -51,11 +67,13 @@ export default function IntroLaptopScene({
                 if (garden) {
                     garden.style.setProperty("--garden-left", "0px");
                     garden.style.setProperty("--garden-top", "0px");
-                    garden.style.setProperty("--garden-width", `${window.innerWidth}px`);
-                    garden.style.setProperty("--garden-height", `${window.innerHeight}px`);
+                    garden.style.setProperty("--garden-width", "100vw");
+                    garden.style.setProperty("--garden-height", "100svh");
                     garden.style.setProperty("--garden-left-slope", "0%");
                     garden.style.setProperty("--garden-right-slope", "0%");
                     garden.style.setProperty("--garden-radius", "0px");
+                    garden.style.setProperty("--garden-mobile-mountain-scale", "1");
+                    garden.style.setProperty("--garden-mobile-tree-scale", "1");
                     garden.style.setProperty("--garden-tree-width", `${Math.min(Math.max(window.innerWidth * 0.43, 390), 640)}px`);
                     garden.style.zIndex = "0";
                     garden.style.visibility = "visible";
@@ -73,6 +91,44 @@ export default function IntroLaptopScene({
             const photoFade = smootherStep((progress - 0.52) / 0.42);
             const screenMorph = smootherStep((progress - 0.7) / 0.3);
             const slideProgress = smootherStep((progress - 0.9) / 0.1);
+            const garden = gardenRef?.current;
+
+            if (mobileLayout.matches) {
+                const mobileZoom = smootherStep((progress - 0.04) / 0.82);
+                const mountainScale = 1 + mobileZoom * 0.16;
+                const treeScale = 0.82 + mobileZoom * 0.26;
+                const treeWidth = Math.min(Math.max(window.innerWidth * 0.92, 300), 520);
+
+                intro.style.setProperty("--intro-progress", progress.toFixed(3));
+                intro.style.setProperty("--intro-slide", slideProgress.toFixed(3));
+
+                if (garden) {
+                    garden.style.setProperty("--garden-left", "0px");
+                    garden.style.setProperty("--garden-top", "0px");
+                    garden.style.setProperty("--garden-width", "100vw");
+                    garden.style.setProperty("--garden-height", "100svh");
+                    garden.style.setProperty("--garden-left-slope", "0%");
+                    garden.style.setProperty("--garden-right-slope", "0%");
+                    garden.style.setProperty("--garden-radius", "0px");
+                    garden.style.setProperty("--garden-tree-width", `${treeWidth.toFixed(2)}px`);
+                    garden.style.setProperty("--garden-mobile-mountain-scale", mountainScale.toFixed(3));
+                    garden.style.setProperty("--garden-mobile-tree-scale", treeScale.toFixed(3));
+                    garden.style.zIndex = progress >= 0.98 ? "0" : "5";
+                    garden.style.visibility = "visible";
+                }
+
+                const readyStateChanged = publishReadyState(progress >= 0.68);
+                const gardenReadyStateChanged = publishGardenReadyState(true);
+                frameId = readyStateChanged || gardenReadyStateChanged
+                    ? requestAnimationFrame(updateIntro)
+                    : undefined;
+                return;
+            }
+
+            if (garden) {
+                garden.style.setProperty("--garden-mobile-mountain-scale", "1");
+                garden.style.setProperty("--garden-mobile-tree-scale", "1");
+            }
 
             // Landscape screens use a true cover calculation. Portrait screens
             // show more of the laptop so the bezel remains readable.
@@ -115,7 +171,6 @@ export default function IntroLaptopScene({
             intro.style.setProperty("--intro-screen-right-inset", `${screenRightInset.toFixed(2)}%`);
             intro.style.setProperty("--intro-screen-radius", `${contentRadius.toFixed(2)}px`);
 
-            const garden = gardenRef?.current;
             const screenAnchor = screenAnchorRef.current;
             if (garden && screenAnchor) {
                 const screenRect = screenAnchor.getBoundingClientRect();
@@ -152,11 +207,13 @@ export default function IntroLaptopScene({
         window.addEventListener("scroll", scheduleUpdate, { passive: true });
         window.addEventListener("resize", scheduleUpdate);
         reducedMotion.addEventListener("change", scheduleUpdate);
+        mobileLayout.addEventListener("change", scheduleUpdate);
 
         return () => {
             window.removeEventListener("scroll", scheduleUpdate);
             window.removeEventListener("resize", scheduleUpdate);
             reducedMotion.removeEventListener("change", scheduleUpdate);
+            mobileLayout.removeEventListener("change", scheduleUpdate);
             window.history.scrollRestoration = previousScrollRestoration;
             if (frameId !== undefined) cancelAnimationFrame(frameId);
         };
@@ -165,15 +222,19 @@ export default function IntroLaptopScene({
     return (
         <section className="intro-laptop-scene" ref={introRef} aria-hidden="true">
             <div className="intro-laptop-stage">
-                <img className="intro-laptop-backdrop" src={laptopImage} alt="" />
+                {!isMobileLayout && (
+                    <>
+                        <img className="intro-laptop-backdrop" src={laptopImage} alt="" />
 
-                {/* The photo and screen share one wrapper so they zoom together. */}
-                <div className="intro-laptop-frame">
-                    <img className="intro-laptop-photo" src={laptopImage} alt="" />
+                        {/* The photo and screen share one wrapper so they zoom together. */}
+                        <div className="intro-laptop-frame">
+                            <img className="intro-laptop-photo" src={laptopImage} alt="" />
 
-                    {/* This invisible anchor keeps the shared garden aligned to the glass. */}
-                    <div className="intro-laptop-screen" ref={screenAnchorRef} />
-                </div>
+                            {/* This invisible anchor keeps the shared garden aligned to the glass. */}
+                            <div className="intro-laptop-screen" ref={screenAnchorRef} />
+                        </div>
+                    </>
+                )}
             </div>
         </section>
     );
