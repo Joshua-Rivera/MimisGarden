@@ -922,7 +922,7 @@ body {
 
 @media (max-width: 900px) {
     .navbar {
-        top: 14px;
+        top: calc(14px + env(safe-area-inset-top, 0px));
         height: 66px;
         padding: 0 18px;
     }
@@ -998,7 +998,7 @@ body {
         --garden-left: 0px;
         --garden-top: 0px;
         --garden-width: 100vw;
-        --garden-height: 100svh;
+        --garden-height: 100vh;
         --garden-left-slope: 0%;
         --garden-right-slope: 0%;
         --garden-radius: 0px;
@@ -1007,6 +1007,12 @@ body {
         --garden-mobile-tree-scale: 0.82;
         z-index: 5;
         visibility: visible;
+    }
+
+    @supports (height: 100lvh) {
+        .site-garden-background {
+            --garden-height: 100lvh;
+        }
     }
 
     .intro-laptop-backdrop,

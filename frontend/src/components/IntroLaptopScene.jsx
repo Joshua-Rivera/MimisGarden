@@ -68,7 +68,11 @@ export default function IntroLaptopScene({
                     garden.style.setProperty("--garden-left", "0px");
                     garden.style.setProperty("--garden-top", "0px");
                     garden.style.setProperty("--garden-width", "100vw");
-                    garden.style.setProperty("--garden-height", "100svh");
+                    if (mobileLayout.matches) {
+                        garden.style.removeProperty("--garden-height");
+                    } else {
+                        garden.style.setProperty("--garden-height", "100svh");
+                    }
                     garden.style.setProperty("--garden-left-slope", "0%");
                     garden.style.setProperty("--garden-right-slope", "0%");
                     garden.style.setProperty("--garden-radius", "0px");
@@ -106,7 +110,7 @@ export default function IntroLaptopScene({
                     garden.style.setProperty("--garden-left", "0px");
                     garden.style.setProperty("--garden-top", "0px");
                     garden.style.setProperty("--garden-width", "100vw");
-                    garden.style.setProperty("--garden-height", "100svh");
+                    garden.style.removeProperty("--garden-height");
                     garden.style.setProperty("--garden-left-slope", "0%");
                     garden.style.setProperty("--garden-right-slope", "0%");
                     garden.style.setProperty("--garden-radius", "0px");
