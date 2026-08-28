@@ -1,6 +1,7 @@
 :root {
     --cream: #f4dcc1;
     --light-cream: #fff1dc;
+    --mobile-browser-canvas: #707353;
     --brown: #3f2413;
     --soft-brown: #7a4a24;
     --orange: #c7680d;
@@ -989,6 +990,11 @@ body {
 }
 
 @media (max-width: 700px) {
+    html,
+    body {
+        background-color: var(--mobile-browser-canvas);
+    }
+
     .intro-laptop-scene {
         height: 200vh;
         height: 200svh;
@@ -1007,6 +1013,11 @@ body {
         --garden-mobile-tree-scale: 0.82;
         z-index: 5;
         visibility: visible;
+        background-color: var(--mobile-browser-canvas);
+    }
+
+    .garden-scene-shell {
+        background-color: var(--mobile-browser-canvas);
     }
 
     @supports (height: 100lvh) {
