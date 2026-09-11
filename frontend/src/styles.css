@@ -210,6 +210,10 @@ body {
     pointer-events: none;
 }
 
+.garden-background-active {
+    visibility: visible;
+}
+
 .garden-scene-shell {
     position: absolute;
     top: var(--garden-top);
@@ -1078,6 +1082,100 @@ body {
     }
 }
 
+/* Phones bypass the laptop intro. Their hero therefore owns exactly one
+   viewport and cannot inherit the desktop stage's minimum height. */
+.phone-layout .hero {
+    height: 100vh;
+    height: 100svh;
+}
+
+.phone-layout .hero-stage {
+    min-height: 0;
+}
+
+.phone-layout .site-garden-background {
+    --garden-left: 0px;
+    --garden-top: 0px;
+    --garden-width: 100vw;
+    --garden-height: 100vh;
+    --garden-height: 100svh;
+    --garden-left-slope: 0%;
+    --garden-right-slope: 0%;
+    --garden-radius: 0px;
+}
+
+@media (orientation: landscape) {
+    .phone-layout .navbar {
+        top: 8px;
+        width: calc(100% - 24px);
+        height: 52px;
+        padding: 0 14px;
+    }
+
+    .phone-layout .brand {
+        gap: 7px;
+        font-size: 17px;
+    }
+
+    .phone-layout .brand-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .phone-layout .nav-links {
+        gap: 12px;
+    }
+
+    .phone-layout .nav-links a:not(.nav-action) {
+        display: none;
+    }
+
+    .phone-layout .nav-links .nav-action {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .phone-layout .hero-copy {
+        top: 54%;
+        left: 5vw;
+        width: 57vw;
+        padding: 20px 4vw 20px 0;
+        transform: translateY(-50%);
+        opacity: 1;
+    }
+
+    .phone-layout .small-title {
+        margin-bottom: 8px;
+        font-size: 9px;
+    }
+
+    .phone-layout .hero-copy h1 {
+        max-width: 58vw;
+        margin-bottom: 16px;
+        font-size: clamp(36px, 8.4vw, 66px);
+        line-height: 0.82;
+    }
+
+    .phone-layout .button {
+        padding: 11px 18px;
+        border-radius: 11px;
+        font-size: 14px;
+    }
+
+    .phone-layout .site-garden-background {
+        --garden-tree-width: clamp(230px, 34vw, 360px);
+    }
+
+    .phone-layout .tree-layer {
+        left: 73%;
+        bottom: -4%;
+    }
+
+    .phone-layout .mountain-background {
+        object-position: 55% center;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -1163,3 +1261,22 @@ body {
     font-size: 18px;
     line-height: 1.7;
 }
+
+/* Live administration. */
+.admin-panel { position: relative; z-index: 2; max-width: 1100px; margin: 3rem auto; padding: 2rem; border-radius: 24px; background: rgba(249,252,244,.96); color: #193b27; }
+.admin-panel h2, .admin-panel h3 { margin: 1rem 0; }
+.admin-panel p { margin: .75rem 0; }
+.admin-panel label { display: grid; gap: .4rem; margin: 1rem 0; }
+.admin-panel input, .admin-panel select, .admin-panel textarea { padding: .8rem; border: 1px solid #8aa18b; border-radius: 8px; background: white; color: #193b27; font: inherit; max-width: 100%; }
+.admin-actions { display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+.admin-actions button { padding: .6rem 1rem; cursor: pointer; }
+.admin-panel button:disabled { opacity: .5; cursor: default; }
+.history-scroll { overflow-x: auto; }
+.admin-panel table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+.admin-panel th, .admin-panel td { text-align: left; padding: .75rem; border-bottom: 1px solid #ccdacb; }
+.review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+.review-item { border: 1px solid #ccdacb; padding: 1rem; border-radius: 12px; }
+.review-item img { width: 100%; height: 200px; object-fit: contain; }
+@media (max-width: 600px) { .admin-panel { margin: 1rem; padding: 1rem; } }
+
+.admin-panel { scroll-margin-top: 110px; }
