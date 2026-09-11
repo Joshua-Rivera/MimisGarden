@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import json
+import argparse
 
 import torch
 from torch import nn  # neural networks :D
@@ -73,7 +74,7 @@ def validate_dataset_dir(dataset_dir, split_name):
         )
 
 
-def create_dataloaders():
+def create_dataloaders(manifest_path=None):
     """Changes training images so that the model can understand them better,
     essentially its just simple augmentation (test 1)
     """
@@ -109,6 +110,16 @@ def create_dataloaders():
         root=VAL_DIR,
         transform=val_transforms,
     )
+    if manifest_path is not None:
+        manifest = json.loads(Path(manifest_path).read_text())
+        for dataset, split in ((train_dataset, "train"), (val_dataset, "val")):
+            allowed = {str((ML_DIR / name).resolve()) for name in manifest[split]}
+            selected = [(path, target) for path, target in dataset.samples if str(Path(path).resolve()) in allowed]
+            if len(selected) != len(allowed) or not selected:
+                raise ValueError(f"Manifest {split} is empty or refers to missing images")
+            dataset.samples = selected
+            dataset.imgs = selected
+            dataset.targets = [target for _, target in selected]
     # training image loader
     train_loader = DataLoader(
         train_dataset,
@@ -227,6 +238,7 @@ def save_model(model, labels, class_to_idx, accuracy, f1, epoch, optimizer, scal
         "scaler_state_dict": scaler.state_dict(),
         "validation_loss": val_loss,
         "model_version": "plant_model_v1",
+        "training_config": {"warmup_epochs": WARMUP_EPOCHS, "head_lr": LEARNING_RATE, "backbone_lr": FINETUNE_LEARNING_RATE, "batch_size": BATCH_SIZE, "seed": 42},
         "validation_accuracy": accuracy,
         "validation_f1": f1,
     }
@@ -239,11 +251,23 @@ def save_model(model, labels, class_to_idx, accuracy, f1, epoch, optimizer, scal
 
 def main():
     """Warm up the head, fine-tune, and retain the best validation checkpoint."""
+    global EPOCHS, WARMUP_EPOCHS, BATCH_SIZE, NUM_WORKERS
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--warmup-epochs", type=int, default=WARMUP_EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--workers", type=int, default=NUM_WORKERS)
+    parser.add_argument("--manifest", type=Path, default=ML_DIR / "reports/splits.json")
+    args = parser.parse_args()
+    if args.epochs < 1 or not 0 <= args.warmup_epochs < args.epochs or args.batch_size < 2 or args.workers < 0:
+        parser.error("Use epochs > warmup >= 0, batch-size >= 2, and workers >= 0")
+    EPOCHS, WARMUP_EPOCHS, BATCH_SIZE, NUM_WORKERS = args.epochs, args.warmup_epochs, args.batch_size, args.workers
+    torch.set_num_threads(4)
     torch.manual_seed(42)
     # load label classes
     labels = load_labels()
     # load image folders
-    train_dataset, val_dataset, train_loader, val_loader = create_dataloaders()
+    train_dataset, val_dataset, train_loader, val_loader = create_dataloaders(args.manifest)
     print("Labels:", labels)
     print("Train classes:", train_dataset.classes)
     print("Validation classes:", val_dataset.classes)
@@ -278,6 +302,7 @@ def main():
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
     best_f1_score = -1.0
     epochs_without_improvement = 0
+    history = []
     for epoch in range(EPOCHS):
         if epoch == WARMUP_EPOCHS:
             set_fine_tuning(model, True)
@@ -304,6 +329,10 @@ def main():
         print(f"Val accuracy: {accuracy:.4f}")
         print(f"Val F1: {f1:.4f}")
 
+        history.append({"epoch": epoch + 1, "train_loss": train_loss, "validation_loss": val_loss, "validation_accuracy": accuracy, "validation_f1": f1})
+        report_dir = ML_DIR / "reports"
+        report_dir.mkdir(exist_ok=True)
+        (report_dir / "training_history.json").write_text(json.dumps(history, indent=2))
         # saves the best model so far
         if f1 > best_f1_score:
             best_f1_score = f1

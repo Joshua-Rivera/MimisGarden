@@ -1,0 +1,75 @@
+{
+  "model_version": "plant_model_v1",
+  "checkpoint_epoch": 3,
+  "test_images": 8063,
+  "classification_report": {
+    "healthy": {
+      "precision": 0.9910968660968661,
+      "recall": 0.9996408045977011,
+      "f1-score": 0.9953505007153076,
+      "support": 2784.0
+    },
+    "leaf_spots": {
+      "precision": 0.97702834799609,
+      "recall": 0.9886251236399605,
+      "f1-score": 0.9827925270403146,
+      "support": 2022.0
+    },
+    "severe_damage": {
+      "precision": 0.9956372701776254,
+      "recall": 0.9809640773718146,
+      "f1-score": 0.9882462109495824,
+      "support": 3257.0
+    },
+    "accuracy": 0.9893339947910207,
+    "macro avg": {
+      "precision": 0.9879208280901938,
+      "recall": 0.9897433352031587,
+      "f1-score": 0.9887964129017348,
+      "support": 8063.0
+    },
+    "weighted avg": {
+      "precision": 0.989402900140183,
+      "recall": 0.9893339947910207,
+      "f1-score": 0.9893315382276725,
+      "support": 8063.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      2783,
+      0,
+      1
+    ],
+    [
+      10,
+      1999,
+      13
+    ],
+    [
+      15,
+      47,
+      3195
+    ]
+  ],
+  "label_order": [
+    "healthy",
+    "leaf_spots",
+    "severe_damage"
+  ],
+  "confidence_thresholds": {
+    "0.5": {
+      "coverage": 0.9996279300508496,
+      "accuracy_when_accepted": 0.989454094292804
+    },
+    "0.7": {
+      "coverage": 0.9909462979040059,
+      "accuracy_when_accepted": 0.9923654568210263
+    },
+    "0.9": {
+      "coverage": 0.9703584273843483,
+      "accuracy_when_accepted": 0.9964212678936605
+    }
+  },
+  "limitations": "Held-out images from the same source dataset, not an independent real-world study. Confidence is not calibrated. Exact duplicates removed; near duplicates may remain."
+}
