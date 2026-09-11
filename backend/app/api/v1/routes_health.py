@@ -1,15 +1,15 @@
-#import router from fastapi library, to create routes
-from fastapi import APIRouter
-
-#router creates a container for endpoints (routes), and tags are used to group endpoints together in the documentation
+from fastapi import APIRouter, HTTPException
+from app.ml.inference import load_model
 router = APIRouter(tags=["health"])
 
-#get endpoint creation for health check, this endpoint will be used to check if the API is running well and posting
 @router.get("/health")
 def check_health():
-    """
-    Check the health of the API.
-    """
-    return {"status": "ok",
-            "service": "planthealth-api-check",
-            "version": "1.0.0",}
+    return {"status": "ok", "service": "mimis-garden"}
+
+@router.get("/ready")
+def readiness():
+    try:
+        metadata = load_model()[3]
+    except Exception as exc:
+        raise HTTPException(503, "Trained model unavailable") from exc
+    return {"status": "ready", "model_version": metadata["model_version"]}

@@ -1,7 +1,9 @@
 #used to assign a unique identifier to each prediction request / image
 from uuid import uuid4
 # used to handle file uploads in the API endpoints
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
+from pathlib import Path
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from app.db.models import PredictionLog
 #import functions for model predictions, such as how to apply confidence level and care suggestions and model inference, and image services
@@ -19,7 +21,11 @@ async def create_prediction(file: UploadFile, db: Session) -> dict:
     """
     #saves uploaded file to the server and returns the path to the saved image
     image_path = await save_uploaded_image(file)
-    raw_prediction = run_inference(image_path)
+    try:
+        raw_prediction = await run_in_threadpool(run_inference, image_path)
+    except Exception as exc:
+        Path(image_path).unlink(missing_ok=True)
+        raise HTTPException(503, "Plant analysis is temporarily unavailable") from exc
     # applies confidence rules to the raw prediction to determine the plant state and whether the prediction needs review
     plant_state, needs_review = apply_confidence_rules(
         predicted_label=raw_prediction["plant_state"],
@@ -53,7 +59,12 @@ async def create_prediction(file: UploadFile, db: Session) -> dict:
         needs_review=needs_review,
     )
 
-    db.add(prediction_log)
-    db.commit()
+    try:
+        db.add(prediction_log)
+        db.commit()
+    except Exception:
+        db.rollback()
+        Path(image_path).unlink(missing_ok=True)
+        raise
 
     return prediction_response
