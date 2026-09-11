@@ -18,6 +18,7 @@ export default function Navbar({ isVisible = true }) {
       <div className="nav-links">
         <a href="#home">Home</a>
         <a href="#dashboard">Insights</a>
+        <a href="#manage">Manage</a>
         <a className="nav-action" href="#analyze">Analyze</a>
       </div>
     </nav>
