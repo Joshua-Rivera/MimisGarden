@@ -1,7 +1,12 @@
-FROM node:22-alpine
+FROM node:22-alpine AS build
 WORKDIR /frontend
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
-EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
+ARG VITE_API_BASE_URL=/
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN npm run build
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /frontend/dist /usr/share/nginx/html
+EXPOSE 80
