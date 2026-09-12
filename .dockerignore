@@ -6,7 +6,8 @@
 backend/app/ml/data
 backend/app/ml/raw
 backend/app/ml/reports
-backend/app/ml/models
+backend/app/ml/models/*
+!backend/app/ml/models/plant_model_v1.pt
 backend/storage
 frontend/dist
 backend/app/ml/datasets
