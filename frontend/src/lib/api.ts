@@ -1,4 +1,9 @@
-const BASE = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "https://mimisgarden-production.up.railway.app")).replace(/\/$/, "") + "/api/v1";
+const configuredBase = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "https://mimisgarden-production.up.railway.app")).trim();
+// Hosting settings may supply a hostname without a scheme. Preserve same-origin paths.
+const origin = configuredBase.startsWith("/") || /^https?:\/\//i.test(configuredBase)
+  ? configuredBase
+  : `https://${configuredBase}`;
+const BASE = origin.replace(/\/+$/, "") + "/api/v1";
 export async function apiRequest(path: string, options: RequestInit = {}, token = "") {
   const headers = new Headers(options.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
