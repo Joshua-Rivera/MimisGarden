@@ -1,0 +1,23 @@
+{
+  "source_images": 80665,
+  "unique_images": 80639,
+  "cross_split_duplicate_groups": 6,
+  "counts": {
+    "train": {
+      "healthy": 22283,
+      "leaf_spots": 16179,
+      "severe_damage": 26054
+    },
+    "val": {
+      "healthy": 2783,
+      "leaf_spots": 2021,
+      "severe_damage": 3256
+    },
+    "test": {
+      "healthy": 2784,
+      "leaf_spots": 2022,
+      "severe_damage": 3257
+    }
+  },
+  "limitations": "Exact file hashes only; near duplicates, source-plant grouping and real-phone-photo generalization require a separate audit."
+}

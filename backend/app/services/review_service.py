@@ -1,108 +1,27 @@
-from datetime import datetime
-from uuid import uuid4  # assign speficic unique id to request
-
-from fastapi import HTTPException  # http error exception import
-from sqlalchemy.orm import (
-    Session,
-)  # import the Session class from SQLAlchemy for database interactions
-from app import db
-from app.db.models import (
-    Review,
-    PredictionLog,
-)  # import the Review and PredictionLog models from the models module
-from app.ml.models import review
-from app.ml.models.review import ReviewSample
-from app.ml.review_satus import ReviewStatus
+from datetime import UTC, datetime
+from uuid import uuid4
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from app.db.models import Review, PredictionLog
 from app.schemas.review_schema import ReviewCreate
 
 
-def get_review_queue(db: Session) -> list[PredictionLog]:
-    """
-    Retrieve all predictions that need review from the database.
-
-    Args:
-        db (Session): The SQLAlchemy database session.
-    """
-
-    return (
-        db.query(PredictionLog)
-        .filter(PredictionLog.needs_review == True)
-        .order_by(PredictionLog.created_at.desc())
-        .all()
-    )
+def get_review_queue(db: Session):
+    return db.query(PredictionLog).filter(PredictionLog.needs_review.is_(True)).order_by(PredictionLog.created_at.desc()).limit(100).all()
 
 
-def create_review(db: Session, review_data: ReviewCreate, prediction_id: str) -> Review:
-    """
-    Create a new review for a specific prediction.
-
-    Args:
-        db (Session): The SQLAlchemy database session.
-        review_data (ReviewCreate): The data for the new review.
-        prediction_id (str): The ID of the prediction being reviewed.
-
-    Raises:
-        HTTPException: If the prediction with the given ID does not exist.
-
-    Returns:
-        Review: The newly created review object.
-    """
-    # Check if the prediction exists
-    prediction = (
-        db.query(PredictionLog)
-        .filter(PredictionLog.prediction_id == prediction_id)
-        .first()
-    )
+def create_review(db: Session, review_data: ReviewCreate, prediction_id: str):
+    prediction = db.get(PredictionLog, prediction_id)
     if prediction is None:
-        raise HTTPException(status_code=404, detail="Prediction not found")
-
-    # Create a new review instance
-    new_review = Review(
-        review_id=str(uuid4()),  # Generate a unique ID for the review
-        prediction_id=prediction_id,
-        correct_label=review_data.correct_label,
-        review_notes=review_data.review_notes,
-        reviewed_at=datetime.utcnow(),  # Set the current UTC time as the review timestamp
-    )
-
-    # Add the new review to the database session and commit
-    db.add(new_review)
-    db.commit()
-    db.refresh(new_review)  # Refresh to get the updated state from the database
-    if prediction is not None:
-        prediction.needs_review = False  # Mark the prediction as reviewed
-        db.commit()  # Commit the change to the database
-        db.refresh(prediction)  # Refresh to get the updated state from the database
-    return new_review
-
-
-def approve_review(
-    db: Session, review: ReviewSample, correected_label: str
-) -> ReviewSample:
-    """"""
-    review.corrected_label = corrected_label
-    review.review_status = ReviewStatus.REVIEWED.value
-    review.approved_for_training = True
+        raise HTTPException(404, "Prediction not found")
+    review = db.query(Review).filter(Review.prediction_id == prediction_id).first()
+    if review is None:
+        review = Review(review_id=str(uuid4()), prediction_id=prediction_id)
+        db.add(review)
+    review.correct_label = review_data.correct_label
+    review.review_notes = review_data.review_notes
+    review.reviewed_at = datetime.now(UTC).replace(tzinfo=None)
+    prediction.needs_review = False
     db.commit()
     db.refresh(review)
     return review
-
-
-def reject_review(
-    db: Session,
-    review: ReviewSample,
-) -> ReviewSample:
-    review.review_status = ReviewStatus.REJECTED.value
-    review.approved_for_training = False
-    db.commit()
-    db.refresh(review)
-    return review
-
-
-##future proofing for admin dashboard for yours truly :D
-def get_pending_reviews(db: Session):
-    return (
-        db.query(ReviewSample)
-        .filter(ReviewSample.review_status == ReviewStatus.PENDING.value)
-        .all()
-    )

@@ -6,8 +6,10 @@ from app.schemas.metrics_schema import SummaryMetric, ConfidenceMetrics, LabelMe
 
 from app.services.monitoring_service import get_summary_metrics, get_confidence_metrics, get_label_metrics, get_review_metrics
 
+from app.core.security import require_admin
+
 router = APIRouter(
-    tags=["metrics"]
+    dependencies=[Depends(require_admin)], tags=["metrics"]
 )
 
 @router.get(

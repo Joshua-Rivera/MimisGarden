@@ -1,10 +1,14 @@
-from pathlib import Path  # ease of use for files
-import json  # who is json?
+"""Train EfficientNet-B0 on the existing Mimi's Garden ImageFolder splits."""
+
+from pathlib import Path
+import json
+import argparse
 
 import torch
 from torch import nn  # neural networks :D
 from torch.utils.data import DataLoader  # optimizing how data is loaded
-from torchvision import datasets, transforms  # ease of use for training
+from torchvision import datasets, transforms
+from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from sklearn.metrics import accuracy_score, f1_score  # quantification of results
 from tqdm import tqdm  # for loading bars
 
@@ -13,6 +17,7 @@ def getDevice() -> torch.device:
     if torch.cuda.is_available():
         torch.backends.cudnn.benchmark = True
         torch.set_float32_matmul_precision("high")
+        return torch.device("cuda")
     if torch.backends.mps.is_available():
         return torch.device("mps")
     return torch.device("cpu")
@@ -27,7 +32,6 @@ VAL_DIR = ML_DIR / "data" / "val"
 
 # where trained models are saved :D
 MODELS_DIR = ML_DIR / "models"
-MODELS_DIR.mkdir(exist_ok=True)
 # model file name
 MODEL_PATH = MODELS_DIR / "plant_model_v1.pt"
 # where labels are stored
@@ -36,17 +40,19 @@ LABELS_PATH = ML_DIR / "labels.json"
 
 # model training control area
 IMAGE_SIZE = 224  # size of images to be used for training
-BATCH_SIZE = 128  # number of images to be used in each training batch
+BATCH_SIZE = 32  # number of images to be used in each training batch
 EPOCHS = 10  # number of times to train the model on the entire dataset
 LEARNING_RATE = 0.0005  # how fast the model learns
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
-best_f1_score = 0.0
+WARMUP_EPOCHS = 2
+FINETUNE_LEARNING_RATE = 0.00005
+WEIGHTS = EfficientNet_B0_Weights.IMAGENET1K_V1
+NUM_WORKERS = 0  # portable default; increase for dedicated training hosts
 PATIENCE = 5  # number of epochs to wait for improvement before stopping training
-epochs_without_improvement = 0  # counter for epochs without improvement
 
 
 def load_labels():
-    """Load the labels from the labels.json fil460e."""
+    """Load the labels from the labels.json file."""
     with open(LABELS_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -68,7 +74,7 @@ def validate_dataset_dir(dataset_dir, split_name):
         )
 
 
-def create_dataloaders():
+def create_dataloaders(manifest_path=None):
     """Changes training images so that the model can understand them better,
     essentially its just simple augmentation (test 1)
     """
@@ -93,17 +99,8 @@ def create_dataloaders():
         ]
     )
     # validation images without changes
-    val_transforms = transforms.Compose(
-        [
-            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-            ),
-        ]
-    )
-    # trrain images
+    val_transforms = WEIGHTS.transforms()
+    # training images
     train_dataset = datasets.ImageFolder(
         root=TRAIN_DIR,
         transform=train_transforms,
@@ -113,83 +110,61 @@ def create_dataloaders():
         root=VAL_DIR,
         transform=val_transforms,
     )
+    if manifest_path is not None:
+        manifest = json.loads(Path(manifest_path).read_text())
+        for dataset, split in ((train_dataset, "train"), (val_dataset, "val")):
+            allowed = {str((ML_DIR / name).resolve()) for name in manifest[split]}
+            selected = [(path, target) for path, target in dataset.samples if str(Path(path).resolve()) in allowed]
+            if len(selected) != len(allowed) or not selected:
+                raise ValueError(f"Manifest {split} is empty or refers to missing images")
+            dataset.samples = selected
+            dataset.imgs = selected
+            dataset.targets = [target for _, target in selected]
     # training image loader
     train_loader = DataLoader(
         train_dataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=4,
+        num_workers=NUM_WORKERS,
         pin_memory=torch.cuda.is_available(),
-        persistent_workers=True,
+        persistent_workers=NUM_WORKERS > 0,
     )
     # validation image loader
     val_loader = DataLoader(
         val_dataset,
         batch_size=BATCH_SIZE,
         shuffle=False,
-        num_workers=4,
+        num_workers=NUM_WORKERS,
         pin_memory=torch.cuda.is_available(),
-        persistent_workers=True,
+        persistent_workers=NUM_WORKERS > 0,
     )
     return train_dataset, val_dataset, train_loader, val_loader
 
 
-class MimiCNN(nn.Module):
-    def __init__(self, num_classes):
-        super().__init__()
-        # locates patterns in images
-        self.features = nn.Sequential(
-            # reads image color and simple patters since it is the first layer
-            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            # identifies stronger patterns in images
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            # identifies leaf shapes, marks, and textures (hopefully)
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            # locates deeper plant-health related patterns (hopefullyx2)
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-            # locates even deeper plant-health related patterns (hopefullyx3)
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
+def create_model(num_classes, pretrained=True):
+    """ImageNet features with a new head returning one logit per project label.
 
-        # turns image pattern into a specific class prediction
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            # after pooling, the image is 14x14 pixels, so we need to flatten it to a vector of size 512*7*7
-            nn.Linear(512 * 14 * 14, 1024),
-            nn.ReLU(),
-            # assists in reduciing memorizing, therefore reducing overfitting risk
-            nn.Dropout(0.5),
-            # provides a score per layer
-            nn.Linear(1024, num_classes),
-        )
-
-    def forward(self, x):
-        """Forward pass through the network."""
-        x = self.features(x)  # send image through the pattern finder
-        x = self.classifier(x)  # send image through the classifier
-        return x
-
-
-def create_model(num_classes):
-    """Creates the CNN model."""
-    model = MimiCNN(num_classes)
+    pretrained=False is for offline smoke tests or reconstructing a checkpoint.
+    """
+    model = efficientnet_b0(weights=WEIGHTS if pretrained else None)
+    model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    set_fine_tuning(model, False)
     return model
+
+
+def set_fine_tuning(model, enabled):
+    """Warm up only the classifier, then unfreeze the entire backbone."""
+    model.features.requires_grad_(enabled)
 
 
 def train_one_epoch(model, train_loader, loss_function, optimizer, device, scaler):
     """Train the model for one epoch."""
     model.train()
+    if not any(p.requires_grad for p in model.features.parameters()):
+        # Frozen BatchNorm statistics and stochastic depth must stay fixed too.
+        model.features.eval()
     total_loss = 0
+    total_samples = 0
     for images, labels in tqdm(train_loader, desc="Training"):
         # moves the images and labels to the device (GPU or CPU) for training if available
         images = images.to(device, non_blocking=True)
@@ -205,14 +180,16 @@ def train_one_epoch(model, train_loader, loss_function, optimizer, device, scale
         scaler.step(optimizer)
         scaler.update()
         # adds loss for easy tracking
-        total_loss += loss.item()
-    return total_loss / len(train_loader)
+        total_loss += loss.item() * labels.size(0)
+        total_samples += labels.size(0)
+    return total_loss / total_samples
 
 
 def evaluate(model, val_loader, loss_function, device):
     """Evaluate the model on the validation set."""
     model.eval()  # puts model in testing mode
     total_loss = 0
+    total_samples = 0
     true_labels = []
     pred_labels = []
     # shuts off training updates
@@ -231,17 +208,18 @@ def evaluate(model, val_loader, loss_function, device):
             # chooses the class with the highest score
             predictions = torch.argmax(outputs, dim=1)
             # adds loss for easy tracking
-            total_loss += loss.item()
+            total_loss += loss.item() * labels.size(0)
+            total_samples += labels.size(0)
             # saves real labels and predicted labels
             true_labels.extend(labels.cpu().tolist())
             pred_labels.extend(predictions.cpu().tolist())
     # calculates accuracy and f1 score
     accuracy = accuracy_score(true_labels, pred_labels)
-    f1 = f1_score(true_labels, pred_labels, average="weighted")
-    return total_loss / len(val_loader), accuracy, f1
+    f1 = f1_score(true_labels, pred_labels, average="weighted", zero_division=0)
+    return total_loss / total_samples, accuracy, f1
 
 
-def save_model(model, labels, class_to_idx, accuracy, f1):
+def save_model(model, labels, class_to_idx, accuracy, f1, epoch, optimizer, scaler, val_loss):
     """Save the model to the specified path."""
     # saves model and its useful info.
     checkpoint = {
@@ -249,21 +227,47 @@ def save_model(model, labels, class_to_idx, accuracy, f1):
         "labels": labels,
         "class_to_idx": class_to_idx,
         "image_size": IMAGE_SIZE,
-        "architecture": "custom_mimi_cnn",
+        "architecture": "efficientnet_b0",
+        "pretrained_weights": WEIGHTS.name,
+        "preprocessing": {
+            "resize_size": 256, "crop_size": IMAGE_SIZE, "interpolation": "bicubic",
+            "mean": [0.485, 0.456, 0.406], "std": [0.229, 0.224, 0.225],
+        },
+        "epoch": epoch,
+        "optimizer_state_dict": optimizer.state_dict(),
+        "scaler_state_dict": scaler.state_dict(),
+        "validation_loss": val_loss,
         "model_version": "plant_model_v1",
+        "training_config": {"warmup_epochs": WARMUP_EPOCHS, "head_lr": LEARNING_RATE, "backbone_lr": FINETUNE_LEARNING_RATE, "batch_size": BATCH_SIZE, "seed": 42},
         "validation_accuracy": accuracy,
         "validation_f1": f1,
     }
-    torch.save(checkpoint, MODEL_PATH)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    temporary_path = MODEL_PATH.with_suffix(".pt.tmp")
+    torch.save(checkpoint, temporary_path)
+    temporary_path.replace(MODEL_PATH)
     print(f"Model saved to {MODEL_PATH}")
 
 
 def main():
-    """main function :D"""
+    """Warm up the head, fine-tune, and retain the best validation checkpoint."""
+    global EPOCHS, WARMUP_EPOCHS, BATCH_SIZE, NUM_WORKERS
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--warmup-epochs", type=int, default=WARMUP_EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--workers", type=int, default=NUM_WORKERS)
+    parser.add_argument("--manifest", type=Path, default=ML_DIR / "reports/splits.json")
+    args = parser.parse_args()
+    if args.epochs < 1 or not 0 <= args.warmup_epochs < args.epochs or args.batch_size < 2 or args.workers < 0:
+        parser.error("Use epochs > warmup >= 0, batch-size >= 2, and workers >= 0")
+    EPOCHS, WARMUP_EPOCHS, BATCH_SIZE, NUM_WORKERS = args.epochs, args.warmup_epochs, args.batch_size, args.workers
+    torch.set_num_threads(4)
+    torch.manual_seed(42)
     # load label classes
     labels = load_labels()
     # load image folders
-    train_dataset, val_dataset, train_loader, val_loader = create_dataloaders()
+    train_dataset, val_dataset, train_loader, val_loader = create_dataloaders(args.manifest)
     print("Labels:", labels)
     print("Train classes:", train_dataset.classes)
     print("Validation classes:", val_dataset.classes)
@@ -282,7 +286,7 @@ def main():
             f"Got: {val_dataset.classes}"
         )
     # uses avilable gpus if possible, otherwise uses cpu
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = getDevice()
     print(f"Using device: {device}")
 
     # creates cnn instance
@@ -291,10 +295,18 @@ def main():
     # indicates the model how to measure mistakes
     loss_function = nn.CrossEntropyLoss()
     # indicates the model how to improve itself
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.AdamW([
+        {"params": model.classifier.parameters(), "lr": LEARNING_RATE},
+        {"params": model.features.parameters(), "lr": FINETUNE_LEARNING_RATE},
+    ], weight_decay=0.0001)
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
-    best_f1_score = 0.0
+    best_f1_score = -1.0
+    epochs_without_improvement = 0
+    history = []
     for epoch in range(EPOCHS):
+        if epoch == WARMUP_EPOCHS:
+            set_fine_tuning(model, True)
+            print("Fine-tuning all features with a lower backbone learning rate.")
         print(f"\nEpoch {epoch + 1}/{EPOCHS}")
         # trains the model for one epoch
         train_loss = train_one_epoch(
@@ -305,7 +317,7 @@ def main():
             device=device,
             scaler=scaler,
         )
-        # tests the model on testing data
+        # Evaluate only the validation split.
         val_loss, accuracy, f1 = evaluate(
             model=model,
             val_loader=val_loader,
@@ -317,19 +329,28 @@ def main():
         print(f"Val accuracy: {accuracy:.4f}")
         print(f"Val F1: {f1:.4f}")
 
+        history.append({"epoch": epoch + 1, "train_loss": train_loss, "validation_loss": val_loss, "validation_accuracy": accuracy, "validation_f1": f1})
+        report_dir = ML_DIR / "reports"
+        report_dir.mkdir(exist_ok=True)
+        (report_dir / "training_history.json").write_text(json.dumps(history, indent=2))
         # saves the best model so far
         if f1 > best_f1_score:
             best_f1_score = f1
+            epochs_without_improvement = 0
             save_model(
                 model=model,
                 labels=labels,
                 class_to_idx=train_dataset.class_to_idx,
                 accuracy=accuracy,
                 f1=f1,
+                epoch=epoch + 1,
+                optimizer=optimizer,
+                scaler=scaler,
+                val_loss=val_loss,
             )
         elif f1 <= best_f1_score:
-            epochs_wihout_improvement += 1
-            print(f"No improvement in Epoch: {EPOCHS}")
+            epochs_without_improvement += 1
+            print(f"No improvement in Epoch: {epoch + 1}")
             if epochs_without_improvement >= PATIENCE:
                 print(
                     "No improvement for several epochs. Early Stopping, training ended."

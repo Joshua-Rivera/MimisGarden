@@ -1,0 +1,16 @@
+.git
+**/node_modules
+**/.venv
+**/.env*
+.env
+backend/app/ml/data
+backend/app/ml/raw
+backend/app/ml/reports
+backend/app/ml/models
+backend/storage
+frontend/dist
+backend/app/ml/datasets
+backend/app/ml/ml_data
+backend/app/ml/manifests
+backend/app/ml/preprocessing
+**/__pycache__

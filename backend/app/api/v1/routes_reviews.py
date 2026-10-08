@@ -17,8 +17,10 @@ from app.services.review_service import (
     get_review_queue,
 )  # Import the service functions for creating and retrieving reviews
 
+from app.core.security import require_admin
+
 router = APIRouter(
-    tags=["reviews"]
+    dependencies=[Depends(require_admin)], tags=["reviews"]
 )  # Create an APIRouter instance for defining API routes
 
 
@@ -51,3 +53,19 @@ def submit_review(
         prediction_id=prediction_id, review_data=review_data, db=db
     )  # Call the service function to create a new review and return
     # the result
+
+
+@router.get("/reviews/{prediction_id}/image")
+def review_image(prediction_id: str, db: Session = Depends(get_db)):
+    from pathlib import Path
+    from fastapi import HTTPException
+    from fastapi.responses import FileResponse
+    from app.db.models import PredictionLog
+    from app.core.config import UPLOAD_DIR
+    prediction = db.get(PredictionLog, prediction_id)
+    if prediction is None:
+        raise HTTPException(404, "Prediction not found")
+    path = Path(prediction.image_path).resolve()
+    if not path.is_relative_to(UPLOAD_DIR.resolve()) or not path.is_file():
+        raise HTTPException(404, "Image unavailable")
+    return FileResponse(path, headers={"Cache-Control": "no-store"})

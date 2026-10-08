@@ -1,5 +1,5 @@
 # current date and time
-from datetime import datetime
+from datetime import UTC, datetime
 # SQLAlchemy imports for defining database models
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
@@ -22,7 +22,7 @@ class PredictionLog(Base):
     model_version = Column(String, nullable=False)
     needs_review = Column(Boolean, nullable=False)
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Timestamp for when the prediction was logged
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None), nullable=False)  # Timestamp for when the prediction was logged
 
 class Review(Base):
     """
@@ -38,7 +38,7 @@ class Review(Base):
                            index = False) # Foreign key to PredictionLog (not enforced here)
     correct_label = Column(String, nullable=False)
     review_notes = Column(Text, nullable=True)
-    reviewed_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Timestamp for when the review was submitted
+    reviewed_at = Column(DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None), nullable=False)  # Timestamp for when the review was submitted
     prediction = relationship("PredictionLog")
 
 
@@ -58,4 +58,4 @@ class ModelMetadata(Base):
     f1_score = Column(Float, nullable=True)
     status = Column(String, nullable=False, default="experimental")    # e.g., "active", "deprecated"
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Timestamp for when the model metadata was created
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC).replace(tzinfo=None), nullable=False)  # Timestamp for when the model metadata was created

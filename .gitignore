@@ -47,3 +47,9 @@ setup/native_ml_preflight
 backend/app/ml/datasets
 backend/app/ml/manifests
 backend/app/ml/preprocessing
+# Generated local training artifacts and private release configuration
+backend/app/ml/reports/*.log
+backend/app/ml/reports/dataset_hashes.json
+backend/app/ml/reports/splits.json
+backend/.env.local
+.env

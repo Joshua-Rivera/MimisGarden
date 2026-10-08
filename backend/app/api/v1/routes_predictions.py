@@ -1,5 +1,6 @@
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Query
+from app.core.security import require_admin, limit_predictions
 
 from sqlalchemy.orm import Session
 from app.db.models import PredictionLog
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/api/v1", tags=["predictions"])
 
 # creates a POST endpoint at /api/v1/predict that accepts an image file upload and returns a prediction response.
 #  The endpoint uses the create_prediction function to process the uploaded image and generate a prediction.
-@router.post("/predict", response_model=PredictionResponse)
+@router.post("/predict", response_model=PredictionResponse, dependencies=[Depends(limit_predictions)])
 async def predict_plant_health(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -26,13 +27,13 @@ async def predict_plant_health(
     """
     return await create_prediction(file, db)
 
-@router.get("/predictions")
-def get_predictions(db: Session = Depends(get_db)):
+@router.get("/predictions", response_model=list[PredictionResponse], dependencies=[Depends(require_admin)])
+def get_predictions(db: Session = Depends(get_db), limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0)):
     """
     Endpoint to retrieve all predictions from the database.
 
     Args:
         db (Session): The database session.
     """
-    predictions = db.query(PredictionLog).order_by(PredictionLog.created_at.desc()).all()
+    predictions = db.query(PredictionLog).order_by(PredictionLog.created_at.desc()).offset(offset).limit(limit).all()
     return predictions

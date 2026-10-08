@@ -1,22 +1,15 @@
-from datetime import datetime #tells the time duh
-# Pydantic schema for review data class
-from pydantic import BaseModel, ConfigDict
+from datetime import datetime
+from typing import Literal
+from pydantic import BaseModel, ConfigDict, Field
 
 class ReviewCreate(BaseModel):
-    """
-    Pydantic schema for creating a review.
-    """
-    correct_label: str
-    review_notes: str | None = None
+    correct_label: Literal["healthy", "leaf_spots", "severe_damage", "uncertain"]
+    review_notes: str | None = Field(default=None, max_length=2000)
 
 class ReviewResponse(BaseModel):
-    """
-    Pydantic schema for the response of a review.
-    """
     review_id: str
     prediction_id: str
     correct_label: str
     review_notes: str | None
     reviewed_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)  # Config to allow attribute access for ORM models
+    model_config = ConfigDict(from_attributes=True)

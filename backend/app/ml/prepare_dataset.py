@@ -8,6 +8,7 @@ OUTPUT_DIR = ML_DIR / "data"
 
 MAX_TRAIN_IMAGES_PER_LABEL = 50000
 MAX_VAL_IMAGES_PER_LABEL = 50000
+VALIDATION_FRACTION = 0.2
 
 random.seed(42)
 
@@ -126,17 +127,15 @@ def copy_images_from_existing_split(split_name, source_split_folder, max_per_lab
 
 def copy_images_by_splitting_train(train_folder):
     for mimi_label, source_classes in CLASS_MAPPING.items():
+        images = get_images_from_classes(train_folder, source_classes)
+        if len(images) < 2:
+            raise ValueError(f"Need at least two source images for {mimi_label}")
+        random.shuffle(images)
+        validation_count = min(MAX_VAL_IMAGES_PER_LABEL, max(1, int(len(images) * VALIDATION_FRACTION)))
+        val_images = images[:validation_count]
+        train_images = images[validation_count:validation_count + MAX_TRAIN_IMAGES_PER_LABEL]
         train_target_folder = reset_output_folder("train", mimi_label)
         val_target_folder = reset_output_folder("val", mimi_label)
-
-        images = get_images_from_classes(train_folder, source_classes)
-        random.shuffle(images)
-
-        val_images = images[:MAX_VAL_IMAGES_PER_LABEL]
-        train_images = images[
-            MAX_VAL_IMAGES_PER_LABEL : MAX_VAL_IMAGES_PER_LABEL
-            + MAX_TRAIN_IMAGES_PER_LABEL
-        ]
 
         print(f"train / {mimi_label}: copying {len(train_images)} images")
         print(f"val / {mimi_label}: copying {len(val_images)} images")

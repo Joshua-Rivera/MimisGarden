@@ -54,6 +54,8 @@ export default function ImageUpload() {
   }, [isAnalyzing]);
 
   function selectFile(file: File) {
+    if (isAnalyzing) return;
+    if (file.size > 5 * 1024 * 1024) { setFileError("Choose an image no larger than 5 MB."); return; }
     if (!acceptedImageTypes.has(file.type)) {
       setFileError("Choose a PNG, JPG, or WebP image.");
       return;
@@ -102,7 +104,7 @@ export default function ImageUpload() {
       const result = await createPrediction(selectedFile);
       setPrediction(result);
     } catch (requestError) {
-      setError("Prediction failed. Make sure the backend is running and try again.");
+      setError(requestError instanceof Error ? requestError.message : "Analysis is unavailable. Please try again.");
       console.error(requestError);
     } finally {
       setIsAnalyzing(false);
@@ -115,7 +117,7 @@ export default function ImageUpload() {
         <div className="analyze-heading">
           <p className="small-title">Analyze</p>
           <h2>Upload a plant image.</h2>
-          <p>Choose a clear plant or leaf photo to test the prediction workflow.</p>
+          <p>Choose a clear plant or leaf photo. Images and results are stored for administrator review. Avoid including people or private information.</p>
         </div>
 
         <label
@@ -126,8 +128,9 @@ export default function ImageUpload() {
         >
           <span className="file-drop-icon" aria-hidden="true">+</span>
           <span>{isDragging ? "Drop your plant image" : "Choose or drop an image"}</span>
-          <small>PNG, JPG or WebP</small>
+          <small>PNG, JPG or WebP · Maximum 5 MB</small>
           <input
+            disabled={isAnalyzing}
             type="file"
             accept="image/png, image/jpeg, image/webp"
             onChange={handleFileChange}
