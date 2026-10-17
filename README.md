@@ -15,7 +15,7 @@ npm --prefix frontend ci
 cp backend/.env.example backend/.env.local
 ```
 
-Replace the example administrator token in `backend/.env.local` with a long random value. Never put that token in a frontend build variable or commit it. The release work created a separate private root `.env` for Docker; use its token for administrator API requests.
+Replace the example administrator token in `backend/.env.local` with a long random value. Never put that token in a frontend build variable or commit it. The release work created a separate private root `.env` for Docker; use its token for the Docker administration screen.
 
 A trained checkpoint must be installed at `backend/app/ml/models/plant_model_v1.pt`, or set `MODEL_PATH` to its absolute path. Checkpoints and datasets are intentionally excluded from Git. The locally trained checkpoint is already in that location after a successful training run.
 
@@ -31,7 +31,7 @@ Start the frontend from another terminal at the repository root:
 npm --prefix frontend run dev
 ```
 
-Open http://localhost:5500. Administration is available through the protected API endpoints listed below. The website does not include an administration panel. Reviewers must explicitly select a condition; unclear or unsupported images are excluded from training exports.
+Open http://localhost:5500. The Manage section accepts the administrator token and shows actual prediction history, summary metrics, and review images. Tokens remain in page memory. Reviewers must explicitly select a condition; unclear or unsupported images are excluded from training exports.
 
 ## Train and evaluate
 
