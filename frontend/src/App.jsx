@@ -1,4 +1,3 @@
-import AdminPanel from "./components/AdminPanel";
 import { useRef, useState } from "react";
 import Navbar from "./components/Navbar.jsx";
 import IntroLaptopScene from "./components/IntroLaptopScene.jsx";
@@ -29,7 +28,6 @@ export default function App() {
       <GardenBackground ref={gardenRef} isActive={isPhone || gardenReady} />
       <Hero />
       <DashboardPreview />
-      <AdminPanel />
       <LimitationsSection />
     </div>
   );

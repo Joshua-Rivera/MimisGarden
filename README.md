@@ -31,7 +31,7 @@ Start the frontend from another terminal at the repository root:
 npm --prefix frontend run dev
 ```
 
-Open http://localhost:5500. The Manage section accepts the administrator token and shows actual prediction history, summary metrics, and review images. Tokens remain in page memory. Reviewers must explicitly select a condition; unclear or unsupported images are excluded from training exports.
+Open http://localhost:5500 for the public site. Go directly to http://localhost:5500/admin to sign in and view prediction history, summary metrics, and review images. The public page does not link to the admin page. The URL is not an access control: administrative API calls still require the administrator token, which remains in page memory. Reviewers must explicitly select a condition; unclear or unsupported images are excluded from training exports.
 
 ## Train and evaluate
 
